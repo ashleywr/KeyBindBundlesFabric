@@ -1,9 +1,11 @@
 package com.matyrobbrt.keybindbundles;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
+import net.minecraft.client.input.KeyEvent;
 import net.neoforged.neoforge.client.ClientHooks;
 import net.neoforged.neoforge.client.event.InputEvent;
 import org.jetbrains.annotations.Nullable;
@@ -34,7 +36,10 @@ public class KeyMappingUtil {
             Screenshot.grab(
                     MC.gameDirectory,
                     MC.getMainRenderTarget(),
-                    message -> MC.execute(() -> MC.gui.getChat().addMessage(message))
+                    message -> MC.execute(() -> {
+                        MC.gui.getChat().addClientSystemMessage(message);
+                        MC.getNarrator().saySystemQueued(message);
+                    })
             );
             return;
         }
@@ -44,8 +49,9 @@ public class KeyMappingUtil {
         mapping.setDown(true);
 
         ClientHooks.onKeyInput(
-                ModKeyBindBundles.BUNDLE_TRIGGER_KEY.getValue(),
-                0, GLFW.GLFW_PRESS, 0
+                new KeyEvent(
+                        ModKeyBindBundles.BUNDLE_TRIGGER_KEY.getValue(), 0, 0
+                ), GLFW.GLFW_PRESS
         );
     }
 
@@ -56,8 +62,9 @@ public class KeyMappingUtil {
     public static void release(KeyMapping map) {
         map.setDown(false);
         ClientHooks.onKeyInput(
-                ModKeyBindBundles.BUNDLE_TRIGGER_KEY.getValue(),
-                0, GLFW.GLFW_RELEASE, 0
+                new KeyEvent(
+                        ModKeyBindBundles.BUNDLE_TRIGGER_KEY.getValue(), 0, 0
+                ), GLFW.GLFW_RELEASE
         );
 
         map.restoreToOriginalKey();
@@ -72,5 +79,10 @@ public class KeyMappingUtil {
             }
             KEYS_TAKEN_OVER.clear();
         }
+    }
+
+    public static boolean isShiftDown() {
+        var window = Minecraft.getInstance().getWindow();
+        return InputConstants.isKeyDown(window, GLFW.GLFW_KEY_LEFT_SHIFT) || InputConstants.isKeyDown(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
     }
 }

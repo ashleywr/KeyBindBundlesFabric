@@ -5,7 +5,7 @@ import com.matyrobbrt.keybindbundles.KeyBindBundleManager;
 import com.matyrobbrt.keybindbundles.compat.ControllingCompat;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
@@ -43,9 +43,9 @@ public class KeyBindListModification {
             }
 
             @Override
-            public void render(GuiGraphics guiGraphics, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean hovering, float partialTick) {
-                addButton.setPosition(left + width / 2 - addButton.getWidth() / 2, top - 2);
-                addButton.render(guiGraphics, mouseX, mouseY, partialTick);
+            public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a) {
+                addButton.setPosition(getContentX() + getWidth() / 2 - addButton.getWidth() / 2, getContentY() - 2);
+                addButton.extractRenderState(graphics, mouseX, mouseY, a);
             }
 
             @Override
@@ -72,7 +72,10 @@ public class KeyBindListModification {
             }
         }
 
-        list.children().add(lastIndex + 1, after);
+        after.setHeight(20);
+        list.children.add(lastIndex + 1, after);
         ControllingCompat.INSTANCE.addChildren(list, lastIndex + 1, after);
+
+        list.repositionEntries();
     }
 }

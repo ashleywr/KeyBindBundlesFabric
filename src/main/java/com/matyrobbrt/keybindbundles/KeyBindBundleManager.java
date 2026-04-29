@@ -9,6 +9,7 @@ import com.mojang.serialization.JsonOps;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Options;
 import net.minecraft.network.chat.Component;
 import net.neoforged.fml.loading.FMLPaths;
 import org.apache.commons.lang3.ArrayUtils;
@@ -29,7 +30,7 @@ public class KeyBindBundleManager {
     private static List<KeyBindBundle> keybinds;
     private static List<RadialKeyMapping> keyMappings;
 
-    public static void load() {
+    public static void load(Options options) {
         keybinds = new ArrayList<>();
         keyMappings = new ArrayList<>();
 
@@ -38,11 +39,10 @@ public class KeyBindBundleManager {
             keybinds.addAll(KeyBindBundle.LIST_CODEC.decode(JsonOps.INSTANCE, element)
                     .getOrThrow().getFirst());
 
-            for (int i = 0; i < keybinds.size(); i++) {
-                keyMappings.add(keybinds.get(i).createMapping());
+            for (KeyBindBundle keybind : keybinds) {
+                keyMappings.add(keybind.createMapping());
             }
 
-            var options = Minecraft.getInstance().options;
             for (int i = 0; i < options.keyMappings.length; i++) {
                 if (options.keyMappings[i] == ModKeyBindBundles.OPEN_SCREEN_MAPPING) {
                     options.keyMappings = ArrayUtils.insert(i + 1, options.keyMappings, keyMappings.toArray(KeyMapping[]::new));
@@ -113,7 +113,7 @@ public class KeyBindBundleManager {
     public static class RadialKeyMapping extends PriorityKeyMapping {
         public final KeyBindBundle bind;
         private final Component name;
-        public RadialKeyMapping(String name, int keyCode, String category, KeyBindBundle bind) {
+        public RadialKeyMapping(String name, int keyCode, Category category, KeyBindBundle bind) {
             super(name, keyCode, category);
             this.bind = bind;
             this.name = Component.translatable("key.keybindbundles.bundle", Component.literal(bind.name).withStyle(ChatFormatting.GOLD));

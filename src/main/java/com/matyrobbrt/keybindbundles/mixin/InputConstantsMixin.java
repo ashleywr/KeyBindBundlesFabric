@@ -3,6 +3,7 @@ package com.matyrobbrt.keybindbundles.mixin;
 import com.matyrobbrt.keybindbundles.KBClientConfig;
 import com.matyrobbrt.keybindbundles.ModKeyBindBundles;
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.platform.Window;
 import com.mojang.logging.LogUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -19,7 +20,7 @@ public class InputConstantsMixin {
     private static final Set<Class<?>> IGNORED_INVALID_CALLSITES = new CopyOnWriteArraySet<>();
 
     @Inject(at = @At("HEAD"), method = "isKeyDown", cancellable = true)
-    private static void isCustomKeyDown(long window, int key, CallbackInfoReturnable<Boolean> cir) {
+    private static void isCustomKeyDown(Window window, int key, CallbackInfoReturnable<Boolean> cir) {
         if (key <= 0 && KBClientConfig.IGNORE_INVALID_KEY_CHECKS.getAsBoolean()) {
             var caller = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
                     .walk(s -> s.map(StackWalker.StackFrame::getDeclaringClass)

@@ -39,9 +39,12 @@ public class SearchTreeManager {
             }
 
             return searchTrees.creativeNameSearch();
-        } else {
-            if (basicSearch == null) basicSearch = new MappedSearchTree<>(new IdSearchTree<>(i -> Stream.of(i.builtInRegistryHolder().getKey().location()), new RegistryBackedList<>(BuiltInRegistries.ITEM, Item.class)), Item::getDefaultInstance);
-            return basicSearch;
         }
+        // TODO - find a way to make this work (without rendering the item)
+//        else {
+//            if (basicSearch == null) basicSearch = new MappedSearchTree<>(new IdSearchTree<>(i -> Stream.of(i.builtInRegistryHolder().getKey().identifier()), new RegistryBackedList<>(BuiltInRegistries.ITEM, Item.class)), Item::getDefaultInstance);
+//            return basicSearch;
+//        }
+        return SearchTree.empty();
     }
 }

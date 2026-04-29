@@ -2,8 +2,11 @@ package com.matyrobbrt.keybindbundles;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.Holder;
 import net.minecraft.core.UUIDUtil;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -54,16 +57,20 @@ public class KeyBindBundle {
         return new KeyBindBundleManager.RadialKeyMapping(
                 "key.keybindbundles.bundle_" + id.toString(),
                 GLFW.GLFW_KEY_UNKNOWN,
-                "category.keybindbundles",
+                ModKeyBindBundles.CATEGORY,
                 this
         );
     }
 
-    public record KeyEntry(String key, String title, ItemStack icon) {
+    @SuppressWarnings("deprecation")
+    public record KeyEntry(String key, String title, Holder<Item> icon) {
         public static final Codec<KeyEntry> CODEC = RecordCodecBuilder.create(in -> in.group(
                 Codec.STRING.fieldOf("key").forGetter(KeyEntry::key),
                 Codec.STRING.fieldOf("title").forGetter(KeyEntry::title),
-                ItemStack.OPTIONAL_CODEC.lenientOptionalFieldOf("icon", ItemStack.EMPTY).forGetter(KeyEntry::icon)
+                BuiltInRegistries.ITEM.holderByNameCodec().lenientOptionalFieldOf("icon", Items.AIR.builtInRegistryHolder()).forGetter(KeyEntry::icon)
         ).apply(in, KeyEntry::new));
+        public KeyEntry(String key, String title) {
+            this(key, title, Items.AIR.builtInRegistryHolder());
+        }
     }
 }

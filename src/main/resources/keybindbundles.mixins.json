@@ -11,8 +11,7 @@
 
     "compat.NewKeyEntryMixin",
 
-    "access.ScreenAccess",
-    "access.AbstractSelectionListAccess"
+    "access.RegisterKeyMappingsEventAccess"
   ],
   "injectors": {
     "defaultRequire": 1

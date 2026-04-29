@@ -1,17 +1,23 @@
 package com.matyrobbrt.keybindbundles.render;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferUploader;
+import com.matyrobbrt.keybindbundles.ModKeyBindBundles;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
+import net.minecraft.client.gui.render.TextureSetup;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.state.gui.GuiElementRenderState;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.ArrayUtils;
+import org.joml.Matrix3x2f;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +25,11 @@ import java.util.stream.IntStream;
 
 // There's heavy inspiration from Mek, see https://github.com/mekanism/Mekanism/blob/1.21.x/src/main/java/mekanism/client/gui/GuiRadialSelector.java
 public abstract class RadialMenuRenderer<T> {
+    public static final RenderPipeline PIPELINE = RenderPipeline.builder(RenderPipelines.GUI_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(ModKeyBindBundles.MOD_ID, "radial"))
+            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLE_STRIP)
+            .build();
+
     private static final float DRAWS = 300;
 
     public static final float INNER = 40, OUTER = 100;
@@ -38,7 +49,7 @@ public abstract class RadialMenuRenderer<T> {
     private int[] hoverGrows = new int[0];
     private long lastUpdate = System.currentTimeMillis();
 
-    public void render(GuiGraphics guiGraphics, boolean trackMouse) {
+    public void render(GuiGraphicsExtractor guiGraphics, boolean trackMouse) {
         var entries = getEntries();
         if (entries.isEmpty()) return;
 
@@ -50,13 +61,10 @@ public abstract class RadialMenuRenderer<T> {
         int count = entries.size();
         float angleSize = 360F / count;
 
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-
         float centerX = guiGraphics.guiWidth() / 2f;
         float centerY = guiGraphics.guiHeight() / 2f;
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(centerX, centerY, 0f);
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().translate(centerX, centerY);
 
         var hot = getCurrentlySelected();
         for (int i = 0; i < entries.size(); i++) {
@@ -93,8 +101,7 @@ public abstract class RadialMenuRenderer<T> {
             var icon = getIcon(key);
             if (!icon.isEmpty()) {
                 textToDraw.add(new PositionedText(x, y, getTitle(key)));
-
-                guiGraphics.renderItem(icon, Math.round(x - 8), Math.round(y - 8 - 2 - 9));
+                guiGraphics.item(icon, Math.round(x - 8), Math.round(y - 8 - 2 - 9));
             } else {
                 textToDraw.add(new PositionedText(x, y - 4, getTitle(key)));
             }
@@ -104,18 +111,16 @@ public abstract class RadialMenuRenderer<T> {
             var font = Minecraft.getInstance().font;
 
             for (PositionedText toDraw : textToDraw) {
-                guiGraphics.pose().pushPose();
-                guiGraphics.pose().translate(toDraw.x, toDraw.y, 0);
-                guiGraphics.pose().scale(0.6F, 0.6F, 0.6F);
+                guiGraphics.pose().pushMatrix();
+                guiGraphics.pose().translate(toDraw.x, toDraw.y);
+                guiGraphics.pose().scale(0.6F, 0.6F);
                 Component text = toDraw.text;
-                guiGraphics.drawString(font, text.getVisualOrderText(), -font.width(text) / 2F, 8, 0xCCFFFFFF, true);
-                guiGraphics.pose().popPose();
+                guiGraphics.text(font, text, -font.width(text) / 2, 8, 0xCCFFFFFF, true);
+                guiGraphics.pose().popMatrix();
             }
         }
 
-        guiGraphics.pose().popPose();
-
-        RenderSystem.disableBlend();
+        guiGraphics.pose().popMatrix();
     }
 
     public record MousePos(double x, double y) {}
@@ -156,22 +161,45 @@ public abstract class RadialMenuRenderer<T> {
         hoverGrows = new int[0];
     }
 
-    private static void drawTorus(GuiGraphics guiGraphics, float startAngle, float sizeAngle, float inner, float outer, float red, float green, float blue, float alpha) {
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        var vertexBuffer = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
-        var matrix4f = guiGraphics.pose().last().pose();
-        float draws = DRAWS * (sizeAngle / 360F);
-        for (int i = 0; i <= draws; i++) {
-            float degrees = startAngle + (i / DRAWS) * 360;
-            float angle = Mth.DEG_TO_RAD * degrees;
-            float cos = Mth.cos(angle);
-            float sin = Mth.sin(angle);
-            vertexBuffer.addVertex(matrix4f, outer * cos, outer * sin, 0)
-                    .setColor(red, green, blue, alpha);
-            vertexBuffer.addVertex(matrix4f, inner * cos, inner * sin, 0)
-                    .setColor(red, green, blue, alpha);
-        }
-        BufferUploader.drawWithShader(vertexBuffer.buildOrThrow());
+    private static void drawTorus(GuiGraphicsExtractor guiGraphics, float startAngle, float sizeAngle, float inner, float outer, float red, float green, float blue, float alpha) {
+        var matrix4f = new Matrix3x2f(guiGraphics.pose());
+        var bounds = new ScreenRectangle((int) Math.ceil(-outer), (int) Math.ceil(-outer), (int) Math.ceil(2 * outer), (int) Math.ceil(2 * outer)).transformMaxBounds(matrix4f);
+        guiGraphics.submitGuiElementRenderState(new GuiElementRenderState() {
+            @Override
+            public void buildVertices(VertexConsumer vertexConsumer) {
+                float draws = DRAWS * (sizeAngle / 360F);
+                for (int i = 0; i <= draws; i++) {
+                    float degrees = startAngle + (i / DRAWS) * 360;
+                    float angle = Mth.DEG_TO_RAD * degrees;
+                    float cos = Mth.cos(angle);
+                    float sin = Mth.sin(angle);
+                    vertexConsumer.addVertexWith2DPose(matrix4f, outer * cos, outer * sin)
+                            .setColor(red, green, blue, alpha);
+                    vertexConsumer.addVertexWith2DPose(matrix4f, inner * cos, inner * sin)
+                            .setColor(red, green, blue, alpha);
+                }
+            }
+
+            @Override
+            public RenderPipeline pipeline() {
+                return PIPELINE;
+            }
+
+            @Override
+            public TextureSetup textureSetup() {
+                return TextureSetup.noTexture();
+            }
+
+            @Override
+            public @Nullable ScreenRectangle scissorArea() {
+                return null;
+            }
+
+            @Override
+            public @Nullable ScreenRectangle bounds() {
+                return bounds;
+            }
+        });
     }
 
     public static float wrapDegrees(float angle) {

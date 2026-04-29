@@ -3,7 +3,7 @@ package com.matyrobbrt.keybindbundles;
 import net.minecraft.client.KeyMapping;
 
 public class PriorityKeyMapping extends KeyMapping {
-    public PriorityKeyMapping(String name, int keyCode, String category) {
+    public PriorityKeyMapping(String name, int keyCode, Category category) {
         super(name, keyCode, category);
     }
 

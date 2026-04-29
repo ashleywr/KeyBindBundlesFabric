@@ -4,14 +4,16 @@ import com.matyrobbrt.keybindbundles.util.DelegatingConsumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.searchtree.SearchTree;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2d;
@@ -28,12 +30,12 @@ import java.util.function.Function;
 
 public abstract class AutoCompleteEditBox<T> extends EditBox {
     private final SearchTree<T> tree;
-    private final Function<T, ResourceLocation> idGetter;
+    private final Function<T, Identifier> idGetter;
     private final int maxSuggestions;
 
     private final DelegatingConsumer<String> responders;
     private final AutoComplete autoComplete;
-    public AutoCompleteEditBox(Font font, int x, int y, int width, int height, int itemHeight, int itemWidth, int maxSuggestions, Component message, SearchTree<T> tree, Function<T, ResourceLocation> idGetter) {
+    public AutoCompleteEditBox(Font font, int x, int y, int width, int height, int itemHeight, int itemWidth, int maxSuggestions, Component message, SearchTree<T> tree, Function<T, Identifier> idGetter) {
         super(font, x, y, width, height, message);
         this.tree = tree;
         this.idGetter = idGetter;
@@ -42,7 +44,7 @@ public abstract class AutoCompleteEditBox<T> extends EditBox {
 
         addResponder(autoComplete = new AutoComplete(x, y + 2 + height, width, itemHeight, itemWidth));
 
-        setFormatter((search, cursor) -> {
+        addFormatter((search, cursor) -> {
             if (search.indexOf('@') >= 0) {
                 var comp = Component.empty();
                 var spl = search.split(" ");
@@ -71,34 +73,34 @@ public abstract class AutoCompleteEditBox<T> extends EditBox {
         responders.add(res);
     }
 
-    public abstract void renderItem(GuiGraphics graphics, int x, int y, T item);
+    public abstract void renderItem(GuiGraphicsExtractor graphics, int x, int y, T item);
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (isMouseOver(mouseX, mouseY) && button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (isMouseOver(event.x(), event.y()) && event.button() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
             setValue("");
             autoComplete.accept("");
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    public boolean keyPressed(int key, int scancode, int mods) {
-        if (key == GLFW.GLFW_KEY_ENTER && autoComplete().selectedIndex >= 0) {
+    public boolean keyPressed(KeyEvent event) {
+        if (event.key() == GLFW.GLFW_KEY_ENTER && autoComplete().selectedIndex >= 0) {
             var item = autoComplete.getSuggestion(autoComplete.offset + autoComplete.selectedIndex);
             if (item != null) {
                 setValue(idGetter.apply(item).toString());
                 return true;
             }
-        } else if (key == GLFW.GLFW_KEY_DOWN) {
+        } else if (event.key() == GLFW.GLFW_KEY_DOWN) {
             autoComplete.scrollDown();
             return true;
-        } else if (key == GLFW.GLFW_KEY_UP) {
+        } else if (event.key() == GLFW.GLFW_KEY_UP) {
             autoComplete.scrollUp();
             return true;
         }
-        return super.keyPressed(key, scancode, mods);
+        return super.keyPressed(event);
     }
 
     public AutoComplete autoComplete() {
@@ -129,7 +131,7 @@ public abstract class AutoCompleteEditBox<T> extends EditBox {
             offset = 0;
             selectedIndex = 0;
             
-            var asRl = ResourceLocation.tryParse(search);
+            var asRl = Identifier.tryParse(search);
 
             String namespaceFilter;
             if (search.indexOf('@') >= 0) {
@@ -148,7 +150,7 @@ public abstract class AutoCompleteEditBox<T> extends EditBox {
 
             var items = tree.search(search.trim().toLowerCase(Locale.ROOT));
 
-            var distinctSet = new HashSet<ResourceLocation>();
+            var distinctSet = new HashSet<Identifier>();
             var newItems = new ArrayList<T>(items.size());
             for (T item : items) {
                 if (distinctSet.add(idGetter.apply(item))) {
@@ -170,7 +172,7 @@ public abstract class AutoCompleteEditBox<T> extends EditBox {
         }
 
         @Override
-        protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
             if (AutoCompleteEditBox.this.isFocused()) {
                 updateHoveringState(mouseX, mouseY);
 
@@ -180,9 +182,9 @@ public abstract class AutoCompleteEditBox<T> extends EditBox {
                     int maxY = minY + itemHeight;
                     var item = currentSuggestions.get(i);
                     var hovered = i - offset == selectedIndex;
-                    guiGraphics.fill(RenderType.guiOverlay(), this.getX(), minY, this.getX() + this.getWidth(), maxY, hovered ? -535752431 : -536870912);
-                    renderItem(guiGraphics, minX, minY, item);
-                    guiGraphics.drawString(Minecraft.getInstance().font, Component.literal(idGetter.apply(item).toString()), minX + itemWidth + 2, minY + (itemHeight - 9) / 2, hovered ? ChatFormatting.YELLOW.getColor() : -1);
+                    graphics.fill(this.getX(), minY, this.getX() + this.getWidth(), maxY, hovered ? 0xe0111111 : 0xe0000000);
+                    renderItem(graphics, minX, minY, item);
+                    graphics.text(Minecraft.getInstance().font, Component.literal(idGetter.apply(item).toString()), minX + itemWidth + 2, minY + (itemHeight - 9) / 2, hovered ? ARGB.opaque(ChatFormatting.YELLOW.getColor()) : -1);
                 }
             }
         }
@@ -252,29 +254,18 @@ public abstract class AutoCompleteEditBox<T> extends EditBox {
         }
 
         @Override
-        protected boolean clicked(double xpos, double ypos) {
-            return super.clicked(xpos, ypos) && ypos < getY() + shownSuggestions() * itemHeight;
-        }
-
-        @Override
         public boolean isMouseOver(double xpos, double ypos) {
             return super.isMouseOver(xpos, ypos) && ypos < getY() + shownSuggestions() * itemHeight;
         }
 
         @Override
-        public boolean mouseClicked(double mx, double my, int mb) {
-            if (super.mouseClicked(mx, my, mb)) {
-                updateHoveringState(mx, my);
-                if (selectedIndex != -1) {
-                    var item = getSuggestion(offset + selectedIndex);
-                    if (item != null) {
-                        setValue(idGetter.apply(item).toString());
-                    }
+        public void onClick(MouseButtonEvent event, boolean doubleClick) {
+            updateHoveringState(event.x(), event.y());
+            if (selectedIndex != -1) {
+                var item = getSuggestion(offset + selectedIndex);
+                if (item != null) {
+                    setValue(idGetter.apply(item).toString());
                 }
-
-                return true;
-            } else {
-                return false;
             }
         }
     }

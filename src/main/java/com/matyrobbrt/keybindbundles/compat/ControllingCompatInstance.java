@@ -6,7 +6,6 @@ import com.blamejared.controlling.client.CustomList;
 import com.blamejared.controlling.client.NewKeyBindsList;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.screens.options.controls.KeyBindsList;
-import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.common.NeoForge;
 
 import java.util.function.Predicate;
@@ -15,11 +14,11 @@ public class ControllingCompatInstance implements ControllingCompat {
 
     public ControllingCompatInstance() {
         NeoForge.EVENT_BUS.addListener((final KeyEntryListenersEvent event) -> {
-            if (event.getEntry() instanceof OverrideListenersEntry et) {
+            if (event.entry() instanceof OverrideListenersEntry et) {
                 if (et.doOverrideListeners()) {
-                    event.getListeners().clear();
+                    event.listeners().clear();
                 }
-                event.getListeners().addAll(et.getAdditionalListeners());
+                event.listeners().addAll(et.getAdditionalListeners());
             }
         });
     }
@@ -39,7 +38,7 @@ public class ControllingCompatInstance implements ControllingCompat {
     @Override
     public KeyBindsList.Entry createEntry(KeyBindsList list, KeyMapping mapping) {
         if (list instanceof NewKeyBindsList nl) {
-            return nl.new KeyEntry(mapping, Component.translatable(mapping.getName()));
+            return nl.new KeyEntry(mapping, mapping.getDisplayName());
         }
         return ControllingCompat.super.createEntry(list, mapping);
     }
