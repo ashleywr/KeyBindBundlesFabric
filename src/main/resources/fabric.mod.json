@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "keybindbundles",
+  "version": "${version}",
+  "name": "KeyBind Bundles",
+  "description": "Bundle keybinds into radial menus",
+  "authors": [
+    "Matyrobbrt"
+  ],
+  "contact": {
+    "sources": "https://github.com/ashleywr/KeyBindBundlesFabric"
+  },
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.matyrobbrt.keybindbundles.ModKeyBindBundles"
+    ]
+  },
+  "accessWidener": "keybindbundles.accesswidener",
+  "mixins": [
+    "keybindbundles.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}",
+    "java": ">=21"
+  },
+  "suggests": {
+    "controlling": "*"
+  }
+}

@@ -7,17 +7,17 @@ import com.matyrobbrt.keybindbundles.KeyMappingUtil;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.client.gui.GuiLayer;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
-public class KeybindSelectionOverlay extends RadialMenuRenderer<KeyBindBundle.KeyEntry> implements GuiLayer {
+public class KeybindSelectionOverlay extends RadialMenuRenderer<KeyBindBundle.KeyEntry> implements LayeredDraw.Layer {
     public static final KeybindSelectionOverlay INSTANCE = new KeybindSelectionOverlay();
 
     @Nullable
@@ -34,7 +34,7 @@ public class KeybindSelectionOverlay extends RadialMenuRenderer<KeyBindBundle.Ke
 
     @Override
     public ItemStack getIcon(KeyBindBundle.KeyEntry entry) {
-        return entry.icon().areComponentsBound() ? entry.icon().value().getDefaultInstance() : ItemStack.EMPTY;
+        return entry.icon();
     }
 
     @Override
@@ -48,7 +48,7 @@ public class KeybindSelectionOverlay extends RadialMenuRenderer<KeyBindBundle.Ke
     }
 
     @Override
-    public void render(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker) {
+    public void render(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
         if (displayedKeybind == null) return;
 
         super.render(guiGraphics, true);
@@ -61,7 +61,7 @@ public class KeybindSelectionOverlay extends RadialMenuRenderer<KeyBindBundle.Ke
 
             double[] xPos = new double[1];
             double[] yPos = new double[1];
-            GLFW.glfwGetCursorPos(mainWindow.handle(), xPos, yPos);
+            GLFW.glfwGetCursorPos(mainWindow.getWindow(), xPos, yPos);
 
             double scaledX = xPos[0] - (windowWidth / 2.0f);
             double scaledY = yPos[0] - (windowHeight / 2.0f);
@@ -73,7 +73,7 @@ public class KeybindSelectionOverlay extends RadialMenuRenderer<KeyBindBundle.Ke
                 double fixedX = scaledX * radius / distance;
                 double fixedY = scaledY * radius / distance;
 
-                GLFW.glfwSetCursorPos(mainWindow.handle(), (int) (windowWidth / 2 + fixedX), (int) (windowHeight / 2 + fixedY));
+                GLFW.glfwSetCursorPos(mainWindow.getWindow(), (int) (windowWidth / 2 + fixedX), (int) (windowHeight / 2 + fixedY));
             }
         }
     }

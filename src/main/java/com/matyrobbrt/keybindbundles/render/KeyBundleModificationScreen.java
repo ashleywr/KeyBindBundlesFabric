@@ -7,7 +7,7 @@ import com.matyrobbrt.keybindbundles.util.SearchTreeManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.ImageButton;
@@ -15,16 +15,12 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.client.gui.screens.options.controls.KeyBindsScreen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.searchtree.SearchTree;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.lwjgl.glfw.GLFW;
@@ -32,21 +28,20 @@ import org.lwjgl.glfw.GLFW;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Optional;
 
-@SuppressWarnings("deprecation")
 public class KeyBundleModificationScreen extends Screen {
     public static KeyBindBundle currentlySelecting;
 
-    private static final KeyBindBundle.KeyEntry ADD_ENTRY = new KeyBindBundle.KeyEntry("add", "§6Add Entry§r");
-    private static final List<ClientTooltipComponent> TOOLTIPS = Stream.of(
+    private static final KeyBindBundle.KeyEntry ADD_ENTRY = new KeyBindBundle.KeyEntry("add", "§6Add Entry§r", ItemStack.EMPTY);
+    private static final List<Component> TOOLTIPS = List.of(
             Component.translatable("tooltip.keybindbundles.bundle.edit_entry"),
             Component.translatable("tooltip.keybindbundles.bundle.delete_entry"),
             Component.translatable("tooltip.keybindbundles.bundle.move_clockwise"),
             Component.translatable("tooltip.keybindbundles.bundle.move_counterclockwise")
-    ).map(c -> ClientTooltipComponent.create(c.getVisualOrderText())).toList();
+    );
     private static final WidgetSprites CROSS_BUTTON_SPRITES = new WidgetSprites(
-            Identifier.withDefaultNamespace("widget/cross_button"), Identifier.withDefaultNamespace("widget/cross_button_highlighted")
+            ResourceLocation.withDefaultNamespace("widget/cross_button"), ResourceLocation.withDefaultNamespace("widget/cross_button_highlighted")
     );
 
     private final RadialMenuRenderer<KeyBindBundle.KeyEntry> renderer = new RadialMenuRenderer<>() {
@@ -67,7 +62,7 @@ public class KeyBundleModificationScreen extends Screen {
 
         @Override
         public ItemStack getIcon(KeyBindBundle.KeyEntry entry) {
-            return entry.icon().areComponentsBound() ? entry.icon().value().getDefaultInstance() : ItemStack.EMPTY;
+            return entry.icon();
         }
 
         @Override
@@ -92,18 +87,26 @@ public class KeyBundleModificationScreen extends Screen {
 
         var deleteButton = this.addRenderableWidget(
                 new ImageButton(width - 18, height - 18, 14, 14, CROSS_BUTTON_SPRITES, but -> {
-                    Minecraft.getInstance().setScreen(new ConfirmScreen(click -> {
-                        if (click) {
-                            currentlySelecting = null;
-                            Minecraft.getInstance().setScreen(null);
-                            KeyBindBundleManager.delete(bundle);
-                        } else {
-                            Minecraft.getInstance().setScreen(this);
-                        }
-                    }, Component.translatable("title.keybindbundles.confirm_deletion"), Component.translatable("message.keybindbundles.confirm_deletion")));
+                    confirmDeletion();
                 }, Component.translatable("button.keybindbundles.delete"))
         );
         deleteButton.setTooltip(Tooltip.create(Component.translatable("tooltip.keybindbundles.delete_bundle")));
+
+        this.addRenderableWidget(Button.builder(Component.translatable("button.keybindbundles.delete_bundle"), button -> confirmDeletion())
+                .bounds(width / 2 - 75, height - 28, 150, 20)
+                .build());
+    }
+
+    private void confirmDeletion() {
+        Minecraft.getInstance().setScreen(new ConfirmScreen(click -> {
+            if (click) {
+                currentlySelecting = null;
+                Minecraft.getInstance().setScreen(null);
+                KeyBindBundleManager.delete(bundle);
+            } else {
+                Minecraft.getInstance().setScreen(this);
+            }
+        }, Component.translatable("title.keybindbundles.confirm_deletion"), Component.translatable("message.keybindbundles.confirm_deletion")));
     }
 
     @Override
@@ -114,25 +117,25 @@ public class KeyBundleModificationScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-        super.extractRenderState(graphics, mouseX, mouseY, a);
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        graphics.text(font, getTitle(), width / 2 - font.width(getTitle()) / 2, 10, 0xffffffff);
+        guiGraphics.drawString(font, getTitle(), width / 2 - font.width(getTitle()) / 2, 10, 0xffffffff);
 
         var render = Minecraft.getInstance().screen == this;
-        renderer.render(graphics, render);
+        renderer.render(guiGraphics, render);
         if (render) {
             var element = renderer.getElementUnderMouse(true);
             if (element >= 0 && element < entries.size() - 1) {
-                graphics.tooltip(font, TOOLTIPS, mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null);
+                guiGraphics.renderTooltip(font, TOOLTIPS, Optional.empty(), mouseX, mouseY);
             }
         }
     }
 
     @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
         var element = renderer.getElementUnderMouse(true);
-        if (element < 0) return super.mouseClicked(event, doubleClick);
+        if (element < 0) return super.mouseClicked(mouseX, mouseY, button);
 
         if (element == entries.size() - 1) {
             currentlySelecting = bundle;
@@ -140,21 +143,22 @@ public class KeyBundleModificationScreen extends Screen {
                     this, Minecraft.getInstance().options
             ));
         } else {
-            if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-                if (KeyMappingUtil.isShiftDown()) {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+                if (Screen.hasShiftDown()) {
                     if (bundle.getBookmark() == element) {
                         bundle.setBookmark(-1);
                     }
 
                     entries.remove(element);
                     bundle.getEntries().remove(element);
+                    KeyBindBundleManager.write();
                 } else {
                     var key = KeyMappingUtil.getByName(bundle.getEntries().get(element).key());
-                    Minecraft.getInstance().pushGuiLayer(new EditKeyScreen(element, key == null ? Component.empty() : Component.translatable("title.keybindbundles.editing_key", key.getDisplayName().copy().withStyle(ChatFormatting.GOLD))));
+                    Minecraft.getInstance().setScreen(new EditKeyScreen(element, key == null ? Component.empty() : Component.translatable("title.keybindbundles.editing_key", KeyMappingUtil.displayName(key).copy().withStyle(ChatFormatting.GOLD))));
                 }
             } else {
                 int newPos;
-                if (KeyMappingUtil.isShiftDown()) {
+                if (Screen.hasShiftDown()) {
                     newPos = element - 1;
                     if (newPos < 0) {
                         newPos = bundle.getEntries().size() - 1;
@@ -168,6 +172,7 @@ public class KeyBundleModificationScreen extends Screen {
 
                 Collections.swap(entries, element, newPos);
                 Collections.swap(bundle.getEntries(), element, newPos);
+                KeyBindBundleManager.write();
             }
         }
 
@@ -198,15 +203,15 @@ public class KeyBundleModificationScreen extends Screen {
             title.setValue(getEntry().title());
 
             SearchTree<ItemStack> tree = SearchTreeManager.getSearchTree();
-            icon = new AutoCompleteEditBox<>(font, width / 2 - 120, middlePos + 2 + 9 + 2, 240, 20, 16, 18, 5, Component.translatable("box.keybindbundles.key_icon_id"), tree, i -> BuiltInRegistries.ITEM.wrapAsHolder(i.getItem()).getKey().identifier()) {
+            icon = new AutoCompleteEditBox<>(font, width / 2 - 120, middlePos + 2 + 9 + 2, 240, 20, 16, 18, 5, Component.translatable("box.keybindbundles.key_icon_id"), tree, i -> i.getItemHolder().unwrapKey().orElseThrow().location()) {
                 @Override
-                public void renderItem(GuiGraphicsExtractor graphics, int x, int y, ItemStack item) {
-                    graphics.item(item, x, y);
+                public void renderItem(GuiGraphics graphics, int x, int y, ItemStack item) {
+                    graphics.renderItem(item, x, y);
                 }
             };
             icon.setMaxLength(512);
-            if (getEntry().icon().value() != Items.AIR) {
-                icon.setValue(getEntry().icon().getRegisteredName());
+            if (!getEntry().icon().isEmpty()) {
+                icon.setValue(getEntry().icon().getItemHolder().getRegisteredName());
             }
 
             addRenderableWidget(title);
@@ -221,33 +226,24 @@ public class KeyBundleModificationScreen extends Screen {
         }
 
         @Override
-        protected void extractBlurredBackground(GuiGraphicsExtractor graphics) {
-        }
-
-        @Override
-        public boolean isInGameUi() {
-            return true;
-        }
-
-        @Override
-        public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-            super.extractRenderState(graphics, mouseX, mouseY, a);
+        public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+            super.render(guiGraphics, mouseX, mouseY, partialTick);
             var font = Minecraft.getInstance().font;
 
-            graphics.text(font, getTitle(), width / 2 - font.width(getTitle()) / 2, 30, 0xffffffff);
+            guiGraphics.drawString(font, getTitle(), width / 2 - font.width(getTitle()) / 2, 30, 0xffffffff);
 
             var title = Component.translatable("box.keybindbundles.key_title");
-            graphics.text(Minecraft.getInstance().font, title, width / 2 - font.width(title) / 2, middlePos - 2 - 20 - 2 - 9, 0xffffffff);
+            guiGraphics.drawString(Minecraft.getInstance().font, title, width / 2 - font.width(title) / 2, middlePos - 2 - 20 - 2 - 9, 0xffffffff);
 
             var icon = Component.translatable("box.keybindbundles.key_icon");
-            graphics.text(Minecraft.getInstance().font, icon, width / 2 - font.width(icon) / 2, middlePos + 2, 0xffffffff);
+            guiGraphics.drawString(Minecraft.getInstance().font, icon, width / 2 - font.width(icon) / 2, middlePos + 2, 0xffffffff);
 
             if (!this.icon.getValue().isEmpty()) {
-                var parsed = Identifier.tryParse(this.icon.getValue());
+                var parsed = ResourceLocation.tryParse(this.icon.getValue());
                 if (parsed == null) return;
-                var item = BuiltInRegistries.ITEM.get(parsed).orElse(null);
-                if (item != null && item.value() != Items.AIR && item.areComponentsBound()) {
-                    graphics.item(item.value().getDefaultInstance(), this.icon.getX() + this.icon.getWidth() + 2, middlePos + 1 + 9 + 2 + (20 - 16) / 2);
+                var item = BuiltInRegistries.ITEM.get(parsed);
+                if (item != Items.AIR) {
+                    guiGraphics.renderItem(item.getDefaultInstance(), this.icon.getX() + this.icon.getWidth() + 2, middlePos + 1 + 9 + 2 + (20 - 16) / 2);
                 }
             }
         }
@@ -255,11 +251,12 @@ public class KeyBundleModificationScreen extends Screen {
         @Override
         public void onClose() {
             var old = getEntry();
-            var parsed = Identifier.tryParse(this.icon.getValue());
+            var parsed = ResourceLocation.tryParse(this.icon.getValue());
             var newEntry = new KeyBindBundle.KeyEntry(old.key(), title.getValue(),
-                    parsed == null ? Items.AIR.builtInRegistryHolder() : BuiltInRegistries.ITEM.getValue(parsed).builtInRegistryHolder());
+                    parsed == null ? ItemStack.EMPTY : BuiltInRegistries.ITEM.get(parsed).getDefaultInstance());
             entries.set(key, newEntry);
             bundle.getEntries().set(key, newEntry);
+            KeyBindBundleManager.write();
 
             Minecraft.getInstance().setScreen(KeyBundleModificationScreen.this);
         }
@@ -274,12 +271,12 @@ public class KeyBundleModificationScreen extends Screen {
             }
 
             @Override
-            public boolean keyPressed(KeyEvent event) {
-                if (event.key() == GLFW.GLFW_KEY_ENTER) {
+            public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+                if (keyCode == GLFW.GLFW_KEY_ENTER) {
                     onEnter();
                     return true;
                 }
-                return super.keyPressed(event);
+                return super.keyPressed(keyCode, scanCode, modifiers);
             }
 
             protected void onEnter() {

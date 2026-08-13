@@ -1,5 +1,5 @@
 {
-  "key.category.keybindbundles.keybindbundles": "KeyBind Bundles",
+  "category.keybindbundles": "KeyBind Bundles",
   "key.keybindbundles.open_screen": "Open Key Bindings Screen",
   "key.keybindbundles.open_radial_menu": "Open Bundle radial menu",
 
@@ -22,6 +22,7 @@
   "button.keybindbundles.selected": "Selected",
   "button.keybindbundles.edit": "Edit",
   "button.keybindbundles.delete": "Delete",
+  "button.keybindbundles.delete_bundle": "Delete Bundle",
 
   "tooltip.keybindbundles.delete_bundle": "Delete key bundle",
   "tooltip.keybindbundles.bundle.edit_entry": "Left click to edit entry",

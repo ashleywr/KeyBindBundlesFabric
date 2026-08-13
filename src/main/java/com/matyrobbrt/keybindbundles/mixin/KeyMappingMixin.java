@@ -5,7 +5,6 @@ import com.matyrobbrt.keybindbundles.PriorityKeyMapping;
 import com.matyrobbrt.keybindbundles.ii.KeyMappingExtension;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
-import net.neoforged.neoforge.client.settings.KeyMappingLookup;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,7 +19,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class KeyMappingMixin implements KeyMappingExtension {
 
     @Shadow
-    private static KeyMappingLookup MAP;
+    public static void resetMapping() {
+    }
 
     @Shadow
     private InputConstants.Key key;
@@ -56,6 +56,7 @@ public class KeyMappingMixin implements KeyMappingExtension {
     public void takeOverForBundle() {
         previousKey = key;
         key = ModKeyBindBundles.BUNDLE_TRIGGER_KEY;
+        resetMapping();
     }
 
     @Override
@@ -63,6 +64,7 @@ public class KeyMappingMixin implements KeyMappingExtension {
         if (previousKey != null) {
             key = previousKey;
             previousKey = null;
+            resetMapping();
         }
     }
 
@@ -74,8 +76,7 @@ public class KeyMappingMixin implements KeyMappingExtension {
     @Override
     public void kbb$unregister() {
         key = InputConstants.UNKNOWN;
-        var thiz = (KeyMapping)(Object)this;
         KeyMapping.ALL.remove(name);
-        MAP.remove(thiz);
+        resetMapping();
     }
 }

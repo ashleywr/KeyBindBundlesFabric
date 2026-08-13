@@ -2,7 +2,8 @@ package com.matyrobbrt.keybindbundles.mixin;
 
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.options.controls.KeyBindsList;
 import net.minecraft.network.chat.Component;
@@ -18,10 +19,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(KeyBindsList.KeyEntry.class)
-public abstract class KeyEntryMixin extends BaseKeyEntryMixin {
+public class KeyEntryMixin extends BaseKeyEntryMixin {
     @Shadow
     @Final
-    private KeyBindsList this$0;
+    private Button changeButton;
 
     @Shadow
     @Final
@@ -32,20 +33,28 @@ public abstract class KeyEntryMixin extends BaseKeyEntryMixin {
         kbb$handleCustom(key, name);
     }
 
-    @Inject(at = @At("HEAD"), method = "extractContent", cancellable = true)
-    private void extractContent(
-            GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a,
+    @Inject(at = @At("HEAD"), method = "render", cancellable = true)
+    private void render(
+            GuiGraphics guiGraphics,
+            int index,
+            int top,
+            int left,
+            int width,
+            int height,
+            int mouseX,
+            int mouseY,
+            boolean hovering,
+            float partialTick,
             CallbackInfo ci
     ) {
         if (selectButton != null) {
-            graphics.text(Minecraft.getInstance().font, this.name, getContentX(), getContentY() + getHeight() / 2 - 9 / 2, -1);
-            selectButton.setPosition(this$0.scrollBarX() - selectButton.getWidth() - 10, getContentY() - 2);
-            selectButton.extractRenderState(graphics, mouseX, mouseY, a);
+            guiGraphics.drawString(Minecraft.getInstance().font, this.name, left, top + height / 2 - 9 / 2, -1);
+            selectButton.setPosition(changeButton.getX() + changeButton.getWidth() - selectButton.getWidth(), top - 2);
+            selectButton.render(guiGraphics, mouseX, mouseY, partialTick);
             ci.cancel();
         } else if (editButton != null) {
-            int x = this$0.scrollBarX() - 50 - 10 - 5 - 75 - 5 - editButton.getWidth();
-            editButton.setPosition(x, getContentY() - 2);
-            editButton.extractRenderState(graphics, mouseX, mouseY, a);
+            editButton.setPosition(changeButton.getX() - 5 - editButton.getWidth(), top - 2);
+            editButton.render(guiGraphics, mouseX, mouseY, partialTick);
         }
     }
 

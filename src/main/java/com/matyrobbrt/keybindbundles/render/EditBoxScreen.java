@@ -1,12 +1,10 @@
 package com.matyrobbrt.keybindbundles.render;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.TextAlignment;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.MultiLineLabel;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -40,12 +38,12 @@ public class EditBoxScreen extends Screen {
                 minecraft.font, this.width / 2 - 150 / 2, y, 150, 20, message
         ) {
             @Override
-            public boolean keyPressed(KeyEvent event) {
-                if (event.key() == GLFW.GLFW_KEY_ENTER) {
+            public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+                if (keyCode == GLFW.GLFW_KEY_ENTER) {
                     callback.accept(getValue());
                     return true;
                 }
-                return super.keyPressed(event);
+                return super.keyPressed(keyCode, scanCode, modifiers);
             }
         });
         this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, p -> callback.accept(box.getValue()))
@@ -55,10 +53,10 @@ public class EditBoxScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-        super.extractRenderState(graphics, mouseX, mouseY, a);
-        graphics.centeredText(this.font, this.title, this.width / 2, this.titleTop(), 16777215);
-        this.multilineMessage.visitLines(TextAlignment.CENTER, this.width / 2, this.messageTop(), font.lineHeight, graphics.textRenderer());
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, this.titleTop(), 16777215);
+        this.multilineMessage.renderCentered(guiGraphics, this.width / 2, this.messageTop());
     }
 
     private int titleTop() {

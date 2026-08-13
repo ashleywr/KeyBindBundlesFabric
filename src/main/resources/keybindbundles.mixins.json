@@ -8,10 +8,13 @@
     "KeyMappingMixin",
     "BaseKeyEntryMixin",
     "InputConstantsMixin",
+    "MinecraftMixin",
+    "MouseHandlerMixin",
 
     "compat.NewKeyEntryMixin",
 
-    "access.RegisterKeyMappingsEventAccess"
+    "access.ScreenAccess",
+    "access.AbstractSelectionListAccess"
   ],
   "injectors": {
     "defaultRequire": 1

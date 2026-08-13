@@ -3,15 +3,15 @@ package com.matyrobbrt.keybindbundles;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.matyrobbrt.keybindbundles.ii.KeyMappingExtension;
 import com.matyrobbrt.keybindbundles.render.KeybindSelectionOverlay;
 import com.mojang.logging.LogUtils;
+import net.fabricmc.loader.api.FabricLoader;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.Options;
 import net.minecraft.network.chat.Component;
-import net.neoforged.fml.loading.FMLPaths;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 
@@ -24,13 +24,13 @@ import java.util.List;
 
 public class KeyBindBundleManager {
     private static final Logger LOGGER = LogUtils.getLogger();
-    private static final Path PATH = FMLPaths.GAMEDIR.get().resolve("keybind_bundles.json");
+    private static final Path PATH = FabricLoader.getInstance().getGameDir().resolve("keybind_bundles.json");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private static List<KeyBindBundle> keybinds;
     private static List<RadialKeyMapping> keyMappings;
 
-    public static void load(Options options) {
+    public static void load() {
         keybinds = new ArrayList<>();
         keyMappings = new ArrayList<>();
 
@@ -39,10 +39,11 @@ public class KeyBindBundleManager {
             keybinds.addAll(KeyBindBundle.LIST_CODEC.decode(JsonOps.INSTANCE, element)
                     .getOrThrow().getFirst());
 
-            for (KeyBindBundle keybind : keybinds) {
-                keyMappings.add(keybind.createMapping());
+            for (int i = 0; i < keybinds.size(); i++) {
+                keyMappings.add(keybinds.get(i).createMapping());
             }
 
+            var options = Minecraft.getInstance().options;
             for (int i = 0; i < options.keyMappings.length; i++) {
                 if (options.keyMappings[i] == ModKeyBindBundles.OPEN_SCREEN_MAPPING) {
                     options.keyMappings = ArrayUtils.insert(i + 1, options.keyMappings, keyMappings.toArray(KeyMapping[]::new));
@@ -88,7 +89,7 @@ public class KeyBindBundleManager {
                 var options = Minecraft.getInstance().options;
 
                 options.keyMappings = ArrayUtils.removeElement(options.keyMappings, map);
-                map.kbb$unregister();
+                ((KeyMappingExtension) map).kbb$unregister();
             }
 
             write();
@@ -96,6 +97,10 @@ public class KeyBindBundleManager {
     }
 
     public static void write() {
+        if (keybinds == null) {
+            return;
+        }
+
         try {
             var out = KeyBindBundle.LIST_CODEC
                     .encodeStart(JsonOps.INSTANCE, keybinds)
@@ -113,13 +118,12 @@ public class KeyBindBundleManager {
     public static class RadialKeyMapping extends PriorityKeyMapping {
         public final KeyBindBundle bind;
         private final Component name;
-        public RadialKeyMapping(String name, int keyCode, Category category, KeyBindBundle bind) {
+        public RadialKeyMapping(String name, int keyCode, String category, KeyBindBundle bind) {
             super(name, keyCode, category);
             this.bind = bind;
             this.name = Component.translatable("key.keybindbundles.bundle", Component.literal(bind.name).withStyle(ChatFormatting.GOLD));
         }
 
-        @Override
         public Component getDisplayName() {
             return name;
         }

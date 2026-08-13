@@ -21,7 +21,7 @@ public record RegistryBackedList<T>(Registry<T> registry, Class<T> type) impleme
 
     @Override
     public boolean contains(Object o) {
-        return type.isInstance(o) && registry.containsValue((T)o);
+        return type.isInstance(o) && registry.getResourceKey((T)o).isPresent();
     }
 
     @NotNull

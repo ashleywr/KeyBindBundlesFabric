@@ -1,0 +1,7 @@
+accessWidener v2 named
+
+accessible field net/minecraft/client/KeyMapping ALL Ljava/util/Map;
+accessible field net/minecraft/client/gui/screens/options/controls/KeyBindsList$KeyEntry key Lnet/minecraft/client/KeyMapping;
+accessible method net/minecraft/client/gui/screens/options/controls/KeyBindsList$KeyEntry <init> (Lnet/minecraft/client/gui/screens/options/controls/KeyBindsList;Lnet/minecraft/client/KeyMapping;Lnet/minecraft/network/chat/Component;)V
+accessible method net/minecraft/client/gui/screens/options/controls/KeyBindsList$Entry refreshEntry ()V
+mutable field net/minecraft/client/Options keyMappings [Lnet/minecraft/client/KeyMapping;
