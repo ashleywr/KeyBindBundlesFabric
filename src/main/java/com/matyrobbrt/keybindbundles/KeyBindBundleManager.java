@@ -3,11 +3,13 @@ package com.matyrobbrt.keybindbundles;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonParseException;
 import com.matyrobbrt.keybindbundles.ii.KeyMappingExtension;
 import com.matyrobbrt.keybindbundles.render.KeybindSelectionOverlay;
 import com.mojang.logging.LogUtils;
-import net.fabricmc.loader.api.FabricLoader;
 import com.mojang.serialization.JsonOps;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -20,7 +22,9 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class KeyBindBundleManager {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -36,17 +40,25 @@ public class KeyBindBundleManager {
 
         try (var is = Files.newBufferedReader(PATH)) {
             var element = GSON.fromJson(is, JsonArray.class);
+            if (element == null) {
+                throw new JsonParseException("Bundle file is empty");
+            }
+
             keybinds.addAll(KeyBindBundle.LIST_CODEC.decode(JsonOps.INSTANCE, element)
                     .getOrThrow().getFirst());
 
+            var savedKeyMappings = readSavedKeyMappings();
             for (int i = 0; i < keybinds.size(); i++) {
-                keyMappings.add(keybinds.get(i).createMapping());
+                var mapping = keybinds.get(i).createMapping();
+                applySavedKey(mapping, savedKeyMappings);
+                keyMappings.add(mapping);
             }
 
             var options = Minecraft.getInstance().options;
             for (int i = 0; i < options.keyMappings.length; i++) {
                 if (options.keyMappings[i] == ModKeyBindBundles.OPEN_SCREEN_MAPPING) {
                     options.keyMappings = ArrayUtils.insert(i + 1, options.keyMappings, keyMappings.toArray(KeyMapping[]::new));
+                    KeyMapping.resetMapping();
                     break;
                 }
             }
@@ -54,6 +66,50 @@ public class KeyBindBundleManager {
 
         } catch (IOException ex) {
             LOGGER.error("Error reading file from {}: ", PATH, ex);
+        } catch (JsonParseException | IllegalStateException ex) {
+            LOGGER.error("Error parsing file from {}. Bundles will be left empty for this session: ", PATH, ex);
+            keybinds.clear();
+            keyMappings.clear();
+        }
+    }
+
+    private static Map<String, InputConstants.Key> readSavedKeyMappings() {
+        var optionsPath = FabricLoader.getInstance().getGameDir().resolve("options.txt");
+        if (!Files.exists(optionsPath)) {
+            return Map.of();
+        }
+
+        var keys = new HashMap<String, InputConstants.Key>();
+        try (var lines = Files.lines(optionsPath)) {
+            lines.forEach(line -> {
+                if (!line.startsWith("key_")) {
+                    return;
+                }
+
+                int separator = line.indexOf(':');
+                if (separator <= "key_".length()) {
+                    return;
+                }
+
+                var mappingName = line.substring("key_".length(), separator);
+                var savedKey = line.substring(separator + 1);
+                try {
+                    keys.put(mappingName, InputConstants.getKey(savedKey));
+                } catch (RuntimeException ex) {
+                    LOGGER.warn("Ignoring invalid saved key '{}' for mapping '{}'.", savedKey, mappingName);
+                }
+            });
+        } catch (IOException ex) {
+            LOGGER.warn("Unable to read saved key mappings from {}: ", optionsPath, ex);
+        }
+
+        return keys;
+    }
+
+    private static void applySavedKey(KeyMapping mapping, Map<String, InputConstants.Key> savedKeyMappings) {
+        var savedKey = savedKeyMappings.get(mapping.getName());
+        if (savedKey != null) {
+            mapping.setKey(savedKey);
         }
     }
 
@@ -146,6 +202,8 @@ public class KeyBindBundleManager {
         }
 
         private void onClick() {
+            KeyMappingUtil.suppressPhysicalKeyUntilRelease(this);
+
             if (!opensRadial()) {
                 var entry = bind.getBookmarked();
                 if (entry != null) {

@@ -22,6 +22,12 @@ Initial Fabric release for Minecraft 1.21.1.
 
 ### Fixed
 
+- Fixed saved shortcut keys for bundles not being restored after restarting the game.
+- Fixed corrupt or invalid bundle data crashing the client during startup.
+- Fixed held bundle shortcut keys leaking into screens opened by bundle actions.
+- Fixed radial mouse clipping using the cursor X coordinate for both axes.
+- Fixed icon autocomplete suggestions staying visible after clearing the search field.
+- Fixed registry-backed icon search list array conversion and indexed iteration behavior.
 - Fixed crashes when opening the keybind menu on Fabric.
 - Fixed the Edit and Select buttons not responding inside the vanilla and Controlling keybind screens.
 - Fixed bundle changes not being written reliably after editing or closing the game.

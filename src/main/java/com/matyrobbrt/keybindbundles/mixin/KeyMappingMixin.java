@@ -2,6 +2,7 @@ package com.matyrobbrt.keybindbundles.mixin;
 
 import com.matyrobbrt.keybindbundles.ModKeyBindBundles;
 import com.matyrobbrt.keybindbundles.PriorityKeyMapping;
+import com.matyrobbrt.keybindbundles.KeyMappingUtil;
 import com.matyrobbrt.keybindbundles.ii.KeyMappingExtension;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
@@ -12,6 +13,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @SuppressWarnings("ConstantValue")
@@ -35,6 +37,19 @@ public class KeyMappingMixin implements KeyMappingExtension {
     @Shadow
     @Final
     private String name;
+
+    @Inject(at = @At("HEAD"), method = "set", cancellable = true)
+    private static void suppressConsumedBundleKey(InputConstants.Key key, boolean isDown, CallbackInfo ci) {
+        if (!KeyMappingUtil.shouldSuppressPhysicalKey(key)) {
+            return;
+        }
+
+        if (isDown) {
+            ci.cancel();
+        } else {
+            KeyMappingUtil.clearSuppressedPhysicalKey(key);
+        }
+    }
 
     @Inject(at = @At("HEAD"), method = "compareTo", cancellable = true)
     private void priorityCompare(KeyMapping other, CallbackInfoReturnable<Integer> cir) {

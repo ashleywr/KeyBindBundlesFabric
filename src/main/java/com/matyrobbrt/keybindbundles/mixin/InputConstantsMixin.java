@@ -1,6 +1,7 @@
 package com.matyrobbrt.keybindbundles.mixin;
 
 import com.matyrobbrt.keybindbundles.KBClientConfig;
+import com.matyrobbrt.keybindbundles.KeyMappingUtil;
 import com.matyrobbrt.keybindbundles.ModKeyBindBundles;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.logging.LogUtils;
@@ -20,6 +21,11 @@ public class InputConstantsMixin {
 
     @Inject(at = @At("HEAD"), method = "isKeyDown", cancellable = true)
     private static void isCustomKeyDown(long window, int key, CallbackInfoReturnable<Boolean> cir) {
+        if (key > 0 && KeyMappingUtil.shouldSuppressPhysicalKey(InputConstants.getKey(key, -1))) {
+            cir.setReturnValue(false);
+            return;
+        }
+
         if (key <= 0 && KBClientConfig.IGNORE_INVALID_KEY_CHECKS.getAsBoolean()) {
             var caller = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
                     .walk(s -> s.map(StackWalker.StackFrame::getDeclaringClass)

@@ -1,6 +1,7 @@
 package com.matyrobbrt.keybindbundles;
 
 import com.matyrobbrt.keybindbundles.ii.KeyMappingExtension;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
@@ -10,6 +11,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class KeyMappingUtil {
     @Nullable
@@ -19,6 +22,7 @@ public class KeyMappingUtil {
 
     private static final Minecraft MC = Minecraft.getInstance();
     public static final List<KeyMapping> KEYS_TAKEN_OVER = new ArrayList<>();
+    private static final Set<String> SUPPRESSED_PHYSICAL_KEYS = ConcurrentHashMap.newKeySet();
 
     /**
      * This method emulates a press of the keymapping and handles special cases
@@ -61,6 +65,33 @@ public class KeyMappingUtil {
                 if (keyMapping.isDown()) keyMapping.setDown(false);
             }
             KEYS_TAKEN_OVER.clear();
+        }
+    }
+
+    public static void suppressPhysicalKeyUntilRelease(KeyMapping mapping) {
+        var keyName = mapping.saveString();
+        if (keyName.equals(InputConstants.UNKNOWN.getName())) {
+            return;
+        }
+
+        SUPPRESSED_PHYSICAL_KEYS.add(keyName);
+        releaseOtherMappingsWithKey(keyName, mapping);
+        Minecraft.getInstance().execute(() -> releaseOtherMappingsWithKey(keyName, mapping));
+    }
+
+    public static boolean shouldSuppressPhysicalKey(InputConstants.Key key) {
+        return SUPPRESSED_PHYSICAL_KEYS.contains(key.getName());
+    }
+
+    public static void clearSuppressedPhysicalKey(InputConstants.Key key) {
+        SUPPRESSED_PHYSICAL_KEYS.remove(key.getName());
+    }
+
+    private static void releaseOtherMappingsWithKey(String keyName, KeyMapping except) {
+        for (KeyMapping mapping : KeyMapping.ALL.values()) {
+            if (mapping != except && !KEYS_TAKEN_OVER.contains(mapping) && mapping.saveString().equals(keyName)) {
+                mapping.setDown(false);
+            }
         }
     }
 

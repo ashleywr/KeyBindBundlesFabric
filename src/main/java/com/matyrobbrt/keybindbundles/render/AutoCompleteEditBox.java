@@ -123,7 +123,15 @@ public abstract class AutoCompleteEditBox<T> extends EditBox {
 
         @Override
         public void accept(String search) {
-            if (Objects.equals(search, prevSearch) || search.isBlank()) return;
+            if (search.isBlank()) {
+                prevSearch = search;
+                offset = 0;
+                selectedIndex = -1;
+                currentSuggestions = List.of();
+                return;
+            }
+
+            if (Objects.equals(search, prevSearch)) return;
             
             prevSearch = search;
             offset = 0;

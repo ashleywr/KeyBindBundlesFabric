@@ -64,7 +64,7 @@ public class KeybindSelectionOverlay extends RadialMenuRenderer<KeyBindBundle.Ke
             GLFW.glfwGetCursorPos(mainWindow.getWindow(), xPos, yPos);
 
             double scaledX = xPos[0] - (windowWidth / 2.0f);
-            double scaledY = yPos[0] - (windowHeight / 2.0f);
+            double scaledY = yPos[1] - (windowHeight / 2.0f);
 
             double distance = Math.sqrt(scaledX * scaledX + scaledY * scaledY);
             double radius = RadialMenuRenderer.OUTER * ((double) windowWidth / mainWindow.getGuiScaledWidth()) * 1.1;

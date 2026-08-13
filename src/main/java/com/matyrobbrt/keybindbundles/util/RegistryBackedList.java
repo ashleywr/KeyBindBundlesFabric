@@ -21,7 +21,7 @@ public record RegistryBackedList<T>(Registry<T> registry, Class<T> type) impleme
 
     @Override
     public boolean contains(Object o) {
-        return type.isInstance(o) && registry.getResourceKey((T)o).isPresent();
+        return type.isInstance(o) && registry.getResourceKey(type.cast(o)).isPresent();
     }
 
     @NotNull
@@ -39,8 +39,7 @@ public record RegistryBackedList<T>(Registry<T> registry, Class<T> type) impleme
     @NotNull
     @Override
     public <T1> T1[] toArray(@NotNull T1[] a) {
-        // TODO - is this ok?
-        return (T1[]) registry.stream().toArray();
+        return registry.stream().toList().toArray(a);
     }
 
     @Override
@@ -55,7 +54,7 @@ public record RegistryBackedList<T>(Registry<T> registry, Class<T> type) impleme
 
     @Override
     public boolean containsAll(@NotNull Collection<?> c) {
-        return false;
+        return c.stream().allMatch(this::contains);
     }
 
     @Override
@@ -105,12 +104,12 @@ public record RegistryBackedList<T>(Registry<T> registry, Class<T> type) impleme
 
     @Override
     public int indexOf(Object o) {
-        return type.isInstance(o) ? registry.getId((T) o) : -1;
+        return type.isInstance(o) ? registry.getId(type.cast(o)) : -1;
     }
 
     @Override
     public int lastIndexOf(Object o) {
-        return type.isInstance(o) ? registry.getId((T) o) : -1;
+        return type.isInstance(o) ? registry.getId(type.cast(o)) : -1;
     }
 
     @NotNull
@@ -122,7 +121,7 @@ public record RegistryBackedList<T>(Registry<T> registry, Class<T> type) impleme
     @NotNull
     @Override
     public ListIterator<T> listIterator(int index) {
-        return registry.stream().toList().listIterator();
+        return registry.stream().toList().listIterator(index);
     }
 
     @NotNull

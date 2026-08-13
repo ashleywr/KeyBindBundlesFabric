@@ -6,6 +6,7 @@
     "KeyEntryMixin",
     "KeyBindsListMixin",
     "KeyMappingMixin",
+    "KeyboardHandlerMixin",
     "BaseKeyEntryMixin",
     "InputConstantsMixin",
     "MinecraftMixin",
