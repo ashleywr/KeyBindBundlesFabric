@@ -3,11 +3,13 @@
   "id": "keybindbundles",
   "version": "${version}",
   "name": "KeyBind Bundles",
-  "description": "Bundle keybinds into radial menus",
+  "description": "Unofficial Fabric port of KeyBind Bundles. Bundle keybinds into radial menus.",
   "authors": [
-    "Matyrobbrt"
+    "Matyrobbrt",
+    "ashleywr (Fabric port)"
   ],
   "contact": {
+    "homepage": "https://github.com/MatyrobbrtMods/KeyBindBundles",
     "sources": "https://github.com/ashleywr/KeyBindBundlesFabric"
   },
   "license": "MIT",

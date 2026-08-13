@@ -1,11 +1,16 @@
 # Key Bind Bundles Fabric
 
-Key Bind Bundles is a client-side Minecraft mod for grouping multiple keybinds
-behind a single shortcut. Press a bundle key to trigger a bookmarked action, or
-hold the radial modifier while pressing the bundle key to pick from the full
-bundle menu.
+Key Bind Bundles Fabric is an unofficial Fabric port of
+[Key Bind Bundles](https://github.com/MatyrobbrtMods/KeyBindBundles) by
+Matyrobbrt. It is a client-side Minecraft mod for grouping multiple keybinds
+behind a single shortcut.
 
-This fork targets Fabric on Minecraft 1.21.1.
+Press a bundle key to trigger a bookmarked action, or hold the radial modifier
+while pressing the bundle key to pick from the full bundle menu.
+
+This fork targets Fabric on Minecraft 1.21.1. It is maintained separately from
+the original NeoForge project and is not endorsed by or affiliated with
+Matyrobbrt unless stated otherwise by the original project.
 
 ## Requirements
 
@@ -34,3 +39,12 @@ The built jar is written to `build/libs/`.
 Bundle definitions are intentionally separate from key assignments. This keeps
 the bundle contents portable while letting players rebind the bundle shortcut in
 the normal Controls screen.
+
+## Credits
+
+- Original mod: [MatyrobbrtMods/KeyBindBundles](https://github.com/MatyrobbrtMods/KeyBindBundles)
+- Original author: Matyrobbrt
+- Fabric port: [ashleywr/KeyBindBundlesFabric](https://github.com/ashleywr/KeyBindBundlesFabric)
+
+This project is distributed under the MIT License. The original copyright notice
+is preserved in `LICENSE`.
