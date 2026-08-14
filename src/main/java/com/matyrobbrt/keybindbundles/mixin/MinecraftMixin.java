@@ -1,6 +1,7 @@
 package com.matyrobbrt.keybindbundles.mixin;
 
 import com.matyrobbrt.keybindbundles.KeyMappingUtil;
+import com.matyrobbrt.keybindbundles.render.KeybindSelectionOverlay;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import org.jetbrains.annotations.Nullable;
@@ -14,6 +15,7 @@ public class MinecraftMixin {
     @Inject(at = @At("HEAD"), method = "setScreen")
     private void restoreBundleKeys(@Nullable Screen screen, CallbackInfo ci) {
         if (screen != null) {
+            KeybindSelectionOverlay.INSTANCE.discard();
             KeyMappingUtil.restoreAll();
         }
     }

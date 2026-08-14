@@ -152,4 +152,11 @@ public class KeybindSelectionOverlay extends RadialMenuRenderer<KeyBindBundle.Ke
             }
         }
     }
+
+    public void discard() {
+        this.displayedKeybind = null;
+        this.displayedMapping = null;
+        this.currentlyPressing = null;
+        clearState();
+    }
 }

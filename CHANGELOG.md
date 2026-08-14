@@ -30,6 +30,7 @@
 - Fixed radial mouse clipping crashing when the cursor was kept inside the menu.
 - Fixed Cobblemon's "Press Not Bound to battle" style prompts for bundled throw/battle keybinds.
 - Fixed held bundle keys leaking repeat key presses into screens opened from a bundle entry.
+- Fixed bundle overlays retriggering an entry when releasing the bundle key after that entry opened a screen.
 
 ## 1.4.0 - Fabric 1.21.1
 
