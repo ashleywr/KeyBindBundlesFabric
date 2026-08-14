@@ -9,8 +9,8 @@ Press a bundle key to trigger a bookmarked action, or hold the radial modifier
 while pressing the bundle key to pick from the full bundle menu.
 
 This fork targets Fabric on Minecraft 1.21.1. It is maintained separately from
-the original NeoForge project and is not endorsed by or affiliated with
-Matyrobbrt unless stated otherwise by the original project.
+the original NeoForge project, is not a multiloader port, and is not endorsed by
+or affiliated with Matyrobbrt unless stated otherwise by the original project.
 
 ## Usage
 

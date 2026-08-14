@@ -1,6 +1,9 @@
 # Changelog
 
-## 1.4.1 - Fabric 1.21.1
+## 1.4.1-fabric.1 - Fabric 1.21.1
+
+Unofficial Fabric-port release based on KeyBind Bundles 1.4.1. This release is
+maintained separately from the original NeoForge project.
 
 ### Added
 
