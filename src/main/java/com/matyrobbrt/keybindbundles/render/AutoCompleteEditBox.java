@@ -177,6 +177,7 @@ public abstract class AutoCompleteEditBox<T> extends EditBox {
             prevSearch = search;
             offset = 0;
             selectedIndex = 0;
+            invalidateLastMousePosition();
 
             var asRl = ResourceLocation.tryParse(search);
 
@@ -250,7 +251,11 @@ public abstract class AutoCompleteEditBox<T> extends EditBox {
         }
 
         private void updateHoveringState(double x, double y) {
-            if (!this.lastMousePosition.equals(x, y)) {
+            updateHoveringState(x, y, false);
+        }
+
+        private void updateHoveringState(double x, double y, boolean force) {
+            if (force || !this.lastMousePosition.equals(x, y)) {
                 if (this.isMouseOverSuggestions(x, y)) {
                     int minY = this.getY();
 
@@ -265,6 +270,10 @@ public abstract class AutoCompleteEditBox<T> extends EditBox {
                 }
                 lastMousePosition.set(x, y);
             }
+        }
+
+        private void invalidateLastMousePosition() {
+            lastMousePosition.set(Double.NaN);
         }
 
         @Nullable
@@ -339,7 +348,7 @@ public abstract class AutoCompleteEditBox<T> extends EditBox {
                     return clickPicker(mx, my);
                 }
 
-                updateHoveringState(mx, my);
+                updateHoveringState(mx, my, true);
                 return chooseSelectedSuggestion();
             } else {
                 return false;

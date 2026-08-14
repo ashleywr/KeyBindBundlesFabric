@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.4.1 - Fabric 1.21.1
 
 ### Added
 
@@ -22,6 +22,8 @@
 - Fixed selecting keys for a bundle in the vanilla and Controlling keybind lists.
 - Fixed bundle keybind rows showing raw translation keys instead of the bundle name.
 - Fixed bundle deletion returning all the way to the main menu.
+- Fixed deleted bundles remaining visible in the Controls keybind screen until reopening it.
+- Fixed item icon autocomplete clicks sometimes selecting the previous or first suggestion instead of the hovered row.
 
 ## 1.4.0 - Fabric 1.21.1
 

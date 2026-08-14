@@ -15,6 +15,7 @@
     "compat.NewKeyEntryMixin",
 
     "access.ScreenAccess",
+    "access.OptionsSubScreenAccess",
     "access.AbstractSelectionListAccess"
   ],
   "injectors": {

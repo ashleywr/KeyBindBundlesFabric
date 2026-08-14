@@ -3,6 +3,7 @@ package com.matyrobbrt.keybindbundles.render;
 import com.matyrobbrt.keybindbundles.KeyBindBundle;
 import com.matyrobbrt.keybindbundles.KeyBindBundleManager;
 import com.matyrobbrt.keybindbundles.KeyMappingUtil;
+import com.matyrobbrt.keybindbundles.mixin.access.OptionsSubScreenAccess;
 import com.matyrobbrt.keybindbundles.util.SearchTreeManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -108,7 +109,7 @@ public class KeyBundleModificationScreen extends Screen {
             if (click) {
                 currentlySelecting = null;
                 KeyBindBundleManager.delete(bundle);
-                Minecraft.getInstance().setScreen(parent);
+                Minecraft.getInstance().setScreen(freshParent());
             } else {
                 Minecraft.getInstance().setScreen(this);
             }
@@ -119,7 +120,14 @@ public class KeyBundleModificationScreen extends Screen {
     public void onClose() {
         KeyBindBundleManager.write();
         currentlySelecting = null;
-        Minecraft.getInstance().setScreen(parent);
+        Minecraft.getInstance().setScreen(freshParent());
+    }
+
+    private Screen freshParent() {
+        if (parent instanceof KeyBindsScreen keyBindsScreen) {
+            return new KeyBindsScreen(((OptionsSubScreenAccess) keyBindsScreen).kbb$getLastScreen(), Minecraft.getInstance().options);
+        }
+        return parent;
     }
 
     @Override
