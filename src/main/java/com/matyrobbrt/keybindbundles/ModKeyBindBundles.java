@@ -55,10 +55,10 @@ public class ModKeyBindBundles implements ClientModInitializer {
         }
     };
 
-    // Random number chosen by fair dice roll. Pray mods get along with keys that don't exist
-    public static final int SPECIAL_KEY_CODE = 22745;
+    // A valid but uncommon GLFW key used only while forwarding bundle-triggered input events.
+    public static final int SPECIAL_KEY_CODE = GLFW.GLFW_KEY_F24;
 
-    // A random key constant we use to simulate our presses when mimicking InputEvent.Key
+    // A key constant we use to simulate our presses when mimicking InputEvent.Key
     public static final InputConstants.Key BUNDLE_TRIGGER_KEY = InputConstants.getKey(SPECIAL_KEY_CODE, -1);
 
     @Override

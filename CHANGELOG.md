@@ -31,6 +31,7 @@
 - Fixed Cobblemon's "Press Not Bound to battle" style prompts for bundled throw/battle keybinds.
 - Fixed held bundle keys leaking repeat key presses into screens opened from a bundle entry.
 - Fixed bundle overlays retriggering an entry when releasing the bundle key after that entry opened a screen.
+- Fixed bundle entries for mods that handle keybinds from key input events instead of client ticks.
 
 ## 1.4.0 - Fabric 1.21.1
 

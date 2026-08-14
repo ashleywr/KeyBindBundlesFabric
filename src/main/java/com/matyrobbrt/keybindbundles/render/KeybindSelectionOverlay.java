@@ -112,7 +112,6 @@ public class KeybindSelectionOverlay extends RadialMenuRenderer<KeyBindBundle.Ke
             if (key != null) {
                 if (action == GLFW.GLFW_PRESS) {
                     KeyMappingUtil.press(key);
-                    KeyMappingUtil.click(key);
                     currentlyPressing = key;
                 }
             }

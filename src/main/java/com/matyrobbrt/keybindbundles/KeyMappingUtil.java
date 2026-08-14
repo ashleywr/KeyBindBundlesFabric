@@ -9,6 +9,7 @@ import net.minecraft.client.Screenshot;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.KeybindResolver;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,9 +49,12 @@ public class KeyMappingUtil {
             return;
         }
 
-        ((KeyMappingExtension) mapping).takeOverForBundle();
-        KEYS_TAKEN_OVER.add(mapping);
-        mapping.setDown(true);
+        takeOver(mapping);
+        try {
+            sendSyntheticKeyPress(GLFW.GLFW_PRESS);
+        } finally {
+            ((KeyMappingExtension) mapping).restoreToOriginalKey();
+        }
     }
 
     public static void click(KeyMapping map) {
@@ -59,8 +63,9 @@ public class KeyMappingUtil {
 
     public static void tap(KeyMapping mapping) {
         press(mapping);
-        click(mapping);
-        scheduleRelease(mapping);
+        if (KEYS_TAKEN_OVER.contains(mapping)) {
+            scheduleRelease(mapping);
+        }
     }
 
     private static void scheduleRelease(KeyMapping mapping) {
@@ -68,9 +73,12 @@ public class KeyMappingUtil {
     }
 
     public static void release(KeyMapping map) {
-        map.setDown(false);
+        if (!KEYS_TAKEN_OVER.contains(map)) {
+            return;
+        }
 
         ((KeyMappingExtension) map).restoreToOriginalKey();
+        if (map.isDown()) map.setDown(false);
         KEYS_TAKEN_OVER.remove(map);
     }
 
@@ -123,6 +131,17 @@ public class KeyMappingUtil {
                 mapping.setDown(false);
             }
         }
+    }
+
+    private static void takeOver(KeyMapping mapping) {
+        ((KeyMappingExtension) mapping).takeOverForBundle();
+        if (!KEYS_TAKEN_OVER.contains(mapping)) {
+            KEYS_TAKEN_OVER.add(mapping);
+        }
+    }
+
+    private static void sendSyntheticKeyPress(int action) {
+        MC.keyboardHandler.keyPress(MC.getWindow().getWindow(), ModKeyBindBundles.SPECIAL_KEY_CODE, -1, action, 0);
     }
 
     public static Component displayName(KeyMapping mapping) {

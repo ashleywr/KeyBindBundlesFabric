@@ -249,7 +249,6 @@ public class KeyBindBundleManager {
         public void setAndPress(KeyMapping mapping) {
             currentlyPressing = mapping;
             KeyMappingUtil.press(mapping);
-            click();
         }
 
         private void click() {
