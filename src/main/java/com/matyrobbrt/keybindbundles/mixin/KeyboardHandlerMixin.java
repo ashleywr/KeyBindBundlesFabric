@@ -11,10 +11,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(KeyboardHandler.class)
 public class KeyboardHandlerMixin {
-    @Inject(at = @At("HEAD"), method = "keyPress")
+    @Inject(at = @At("HEAD"), method = "keyPress", cancellable = true)
     private void clearConsumedBundleKey(long window, int key, int scancode, int action, int modifiers, CallbackInfo ci) {
-        if (action == GLFW.GLFW_RELEASE && key > 0) {
-            KeyMappingUtil.clearSuppressedPhysicalKey(InputConstants.getKey(key, -1));
+        if (key <= 0) {
+            return;
+        }
+
+        var inputKey = InputConstants.getKey(key, -1);
+        if (action == GLFW.GLFW_RELEASE) {
+            KeyMappingUtil.clearSuppressedPhysicalKey(inputKey);
+        } else if (KeyMappingUtil.shouldSuppressPhysicalKey(inputKey)) {
+            ci.cancel();
         }
     }
 }

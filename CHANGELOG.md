@@ -29,6 +29,7 @@
 - Fixed item icon autocomplete clicks sometimes selecting the previous or first suggestion instead of the hovered row.
 - Fixed radial mouse clipping crashing when the cursor was kept inside the menu.
 - Fixed Cobblemon's "Press Not Bound to battle" style prompts for bundled throw/battle keybinds.
+- Fixed held bundle keys leaking repeat key presses into screens opened from a bundle entry.
 
 ## 1.4.0 - Fabric 1.21.1
 
