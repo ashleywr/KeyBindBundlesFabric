@@ -7,6 +7,7 @@
 - Added a Cloth Config screen exposed through Mod Menu when installed.
 - Added in-game editing for client config values that were previously only editable in the properties file.
 - Added debounced item ID autocomplete for bundle entry icons, including keyboard navigation and a clickable icon picker.
+- Added a client config option to keep bundle radial menus open as a screen until an entry is selected.
 - Added bundle-aware keybind text fallback so unbound keybind prompts can show the first assigned bundle shortcut containing that key.
 - Added repository-wide UTF-8 and line-ending defaults through `.editorconfig` and `.gitattributes`.
 

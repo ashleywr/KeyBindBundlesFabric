@@ -34,5 +34,6 @@
   "category.keybindbundles.configuration": "General",
   "keybindbundles.configuration.ignoreInvalidKeyChecks": "Ignore invalid key checks in #isKeyDown",
   "keybindbundles.configuration.clipMouseToMenu": "Clip mouse within radial menu bounds",
+  "keybindbundles.configuration.stickyBundleSelection": "Keep bundle radial menus open until selecting an entry",
   "keybindbundles.configuration.triggerKeymappingOnRelease": "Trigger hovered keymapping on bundle release"
 }

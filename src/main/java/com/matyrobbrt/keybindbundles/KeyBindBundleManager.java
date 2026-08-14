@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParseException;
 import com.matyrobbrt.keybindbundles.ii.KeyMappingExtension;
+import com.matyrobbrt.keybindbundles.render.KeybindSelectionScreen;
 import com.matyrobbrt.keybindbundles.render.KeybindSelectionOverlay;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.JsonOps;
@@ -211,12 +212,13 @@ public class KeyBindBundleManager {
                     super.setDown(false);
                 }
             } else if (!this.isDown() && value) {
-                onClick();
-                super.setDown(true);
+                if (onClick()) {
+                    super.setDown(true);
+                }
             }
         }
 
-        private void onClick() {
+        private boolean onClick() {
             KeyMappingUtil.suppressPhysicalKeyUntilRelease(this);
 
             if (!opensRadial()) {
@@ -225,15 +227,23 @@ public class KeyBindBundleManager {
                     var key = KeyMappingUtil.getByName(entry.key());
                     if (key != null) {
                         setAndPress(key);
-                        return;
+                        return true;
                     }
                 }
             }
 
             if (!bind.getEntries().isEmpty()) {
-                KeybindSelectionOverlay.INSTANCE.open(this);
-                Minecraft.getInstance().mouseHandler.releaseMouse();
+                if (KBClientConfig.STICKY_BUNDLE_SELECTION.getAsBoolean()) {
+                    Minecraft.getInstance().setScreen(new KeybindSelectionScreen(this));
+                    return false;
+                } else {
+                    KeybindSelectionOverlay.INSTANCE.open(this);
+                    Minecraft.getInstance().mouseHandler.releaseMouse();
+                    return true;
+                }
             }
+
+            return false;
         }
 
         public void setAndPress(KeyMapping mapping) {

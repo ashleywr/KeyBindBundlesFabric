@@ -33,5 +33,6 @@
   "category.keybindbundles.configuration": "Genel",
   "keybindbundles.configuration.ignoreInvalidKeyChecks": "#isKeyDown içindeki geçersiz tuş kontrollerini yok say",
   "keybindbundles.configuration.clipMouseToMenu": "Fareyi dairesel menü sınırları içinde tut",
+  "keybindbundles.configuration.stickyBundleSelection": "Bir girdi seçilene kadar paket dairesel menülerini açık tut",
   "keybindbundles.configuration.triggerKeymappingOnRelease": "Paket bırakıldığında işaretlenen tuş atamasını tetikle"
 }

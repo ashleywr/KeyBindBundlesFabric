@@ -16,6 +16,7 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.options.controls.ControlsScreen;
 import net.minecraft.client.gui.screens.options.controls.KeyBindsScreen;
 import net.minecraft.client.searchtree.SearchTree;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -28,11 +29,14 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public class KeyBundleModificationScreen extends Screen {
     public static KeyBindBundle currentlySelecting;
+    public static KeyBundleModificationScreen currentlySelectingScreen;
 
     private static final KeyBindBundle.KeyEntry ADD_ENTRY = new KeyBindBundle.KeyEntry("add", "§6Add Entry§r", ItemStack.EMPTY);
     private static final List<Component> TOOLTIPS = List.of(
@@ -74,6 +78,8 @@ public class KeyBundleModificationScreen extends Screen {
 
     private final KeyBindBundle bundle;
     private final Screen parent;
+    private final boolean returnToKeyBinds;
+    private final Screen controlsParent;
     private List<KeyBindBundle.KeyEntry> entries = List.of();
 
     public KeyBundleModificationScreen(KeyBindBundle bundle) {
@@ -84,6 +90,8 @@ public class KeyBundleModificationScreen extends Screen {
         super(Component.translatable("title.keybindbundles.editing_keybundle", Component.literal(bundle.name).withStyle(ChatFormatting.GOLD)));
         this.bundle = bundle;
         this.parent = parent;
+        this.returnToKeyBinds = isKeyBindsScreen(parent);
+        this.controlsParent = returnToKeyBinds ? resolveControlsParent(parent) : parent;
     }
 
     @Override
@@ -107,7 +115,7 @@ public class KeyBundleModificationScreen extends Screen {
     private void confirmDeletion() {
         Minecraft.getInstance().setScreen(new ConfirmScreen(click -> {
             if (click) {
-                currentlySelecting = null;
+                stopSelecting();
                 KeyBindBundleManager.delete(bundle);
                 Minecraft.getInstance().setScreen(freshParent());
             } else {
@@ -119,15 +127,48 @@ public class KeyBundleModificationScreen extends Screen {
     @Override
     public void onClose() {
         KeyBindBundleManager.write();
-        currentlySelecting = null;
+        stopSelecting();
         Minecraft.getInstance().setScreen(freshParent());
     }
 
+    public static void finishSelecting() {
+        var screen = currentlySelectingScreen;
+        stopSelecting();
+        if (screen != null) {
+            Minecraft.getInstance().setScreen(screen);
+        }
+    }
+
+    private static void stopSelecting() {
+        currentlySelecting = null;
+        currentlySelectingScreen = null;
+    }
+
     private Screen freshParent() {
-        if (parent instanceof KeyBindsScreen keyBindsScreen) {
-            return new KeyBindsScreen(((OptionsSubScreenAccess) keyBindsScreen).kbb$getLastScreen(), Minecraft.getInstance().options);
+        if (returnToKeyBinds) {
+            return controlsParent == null ? new ControlsScreen(null, Minecraft.getInstance().options) : controlsParent;
         }
         return parent;
+    }
+
+    private static boolean isKeyBindsScreen(Screen screen) {
+        return screen != null && (screen instanceof KeyBindsScreen || screen.getClass().getName().endsWith("KeyBindsScreen"));
+    }
+
+    private static Screen resolveControlsParent(Screen screen) {
+        Set<Screen> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+        Screen current = screen;
+        while (current instanceof KeyBindsScreen keyBindsScreen && seen.add(current)) {
+            Screen lastScreen = ((OptionsSubScreenAccess) keyBindsScreen).kbb$getLastScreen();
+            if (lastScreen instanceof KeyBundleModificationScreen editor) {
+                return editor.controlsParent;
+            }
+            if (lastScreen instanceof ControlsScreen controlsScreen) {
+                return ((OptionsSubScreenAccess) controlsScreen).kbb$getLastScreen();
+            }
+            current = lastScreen;
+        }
+        return null;
     }
 
     @Override
@@ -153,9 +194,8 @@ public class KeyBundleModificationScreen extends Screen {
 
         if (element == entries.size() - 1) {
             currentlySelecting = bundle;
-            Minecraft.getInstance().setScreen(new KeyBindsScreen(
-                    this, Minecraft.getInstance().options
-            ));
+            currentlySelectingScreen = this;
+            Minecraft.getInstance().setScreen(new BundleEntrySelectionScreen(this));
         } else {
             if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
                 if (Screen.hasShiftDown()) {
@@ -296,6 +336,18 @@ public class KeyBundleModificationScreen extends Screen {
             protected void onEnter() {
                 onClose();
             }
+        }
+    }
+
+    private static class BundleEntrySelectionScreen extends KeyBindsScreen {
+        private BundleEntrySelectionScreen(KeyBundleModificationScreen parent) {
+            super(parent, Minecraft.getInstance().options);
+        }
+
+        @Override
+        public void onClose() {
+            stopSelecting();
+            super.onClose();
         }
     }
 

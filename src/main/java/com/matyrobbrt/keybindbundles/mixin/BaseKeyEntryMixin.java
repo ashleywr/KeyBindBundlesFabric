@@ -42,6 +42,7 @@ public class BaseKeyEntryMixin {
                 KeyBindBundleManager.write();
                 selectButton.setMessage(Component.translatable("button.keybindbundles.selected"));
                 selectButton.active = false;
+                KeyBundleModificationScreen.finishSelecting();
             }).bounds(0, 0, 50, 20).build();
 
             if (isSelected) selectButton.active = false;

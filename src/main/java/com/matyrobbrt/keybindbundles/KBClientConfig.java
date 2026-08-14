@@ -18,6 +18,7 @@ public class KBClientConfig {
     public static final BooleanValue CLIP_MOUSE_TO_MENU = new BooleanValue("clipMouseToMenu", false);
     public static final BooleanValue TRIGGER_KEYMAPPING_ON_RELEASE = new BooleanValue("triggerKeymappingOnRelease", false);
     public static final BooleanValue IGNORE_INVALID_KEY_CHECKS = new BooleanValue("ignoreInvalidKeyChecks", false);
+    public static final BooleanValue STICKY_BUNDLE_SELECTION = new BooleanValue("stickyBundleSelection", false);
 
     public static void load() {
         var properties = new Properties();
@@ -32,6 +33,7 @@ public class KBClientConfig {
         CLIP_MOUSE_TO_MENU.read(properties);
         TRIGGER_KEYMAPPING_ON_RELEASE.read(properties);
         IGNORE_INVALID_KEY_CHECKS.read(properties);
+        STICKY_BUNDLE_SELECTION.read(properties);
         save();
     }
 
@@ -40,6 +42,7 @@ public class KBClientConfig {
         CLIP_MOUSE_TO_MENU.write(properties);
         TRIGGER_KEYMAPPING_ON_RELEASE.write(properties);
         IGNORE_INVALID_KEY_CHECKS.write(properties);
+        STICKY_BUNDLE_SELECTION.write(properties);
 
         try {
             Files.createDirectories(PATH.getParent());

@@ -33,5 +33,6 @@
   "category.keybindbundles.configuration": "通用",
   "keybindbundles.configuration.ignoreInvalidKeyChecks": "忽略无效按键检查 #isKeyDown",
   "keybindbundles.configuration.clipMouseToMenu": "将鼠标限制在轮盘菜单中",
+  "keybindbundles.configuration.stickyBundleSelection": "选择栏位前保持快捷轮盘打开",
   "keybindbundles.configuration.triggerKeymappingOnRelease": "关闭轮盘时触发鼠标指向的栏位操作"
 }

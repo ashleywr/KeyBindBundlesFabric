@@ -36,6 +36,13 @@ public final class KBClothConfigScreen {
                 .setSaveConsumer(KBClientConfig.TRIGGER_KEYMAPPING_ON_RELEASE::set)
                 .build());
         general.addEntry(entryBuilder.startBooleanToggle(
+                        Component.translatable("keybindbundles.configuration.stickyBundleSelection"),
+                        KBClientConfig.STICKY_BUNDLE_SELECTION.getAsBoolean()
+                )
+                .setDefaultValue(KBClientConfig.STICKY_BUNDLE_SELECTION.getDefaultValue())
+                .setSaveConsumer(KBClientConfig.STICKY_BUNDLE_SELECTION::set)
+                .build());
+        general.addEntry(entryBuilder.startBooleanToggle(
                         Component.translatable("keybindbundles.configuration.ignoreInvalidKeyChecks"),
                         KBClientConfig.IGNORE_INVALID_KEY_CHECKS.getAsBoolean()
                 )
