@@ -79,6 +79,23 @@ hook.
 
 The built jar is written to `build/libs/`.
 
+## Release
+
+Releases are published through the GitHub Actions `Release` workflow. The
+workflow builds the Fabric jar, publishes to Modrinth and CurseForge when the
+required credentials are configured, then creates or updates the GitHub release
+for the matching `v<mod_version>` tag.
+
+Repository configuration required for publishing:
+
+- Secret `MODRINTH_TOKEN`
+- Variable `MODRINTH_PROJECT_ID`
+- Secret `CURSEFORGE_TOKEN`
+- Variable `CURSEFORGE_PROJECT_ID`
+
+The Modrinth and CurseForge projects must be created and approved in those
+services before the first upload can succeed.
+
 ## Files
 
 - Client config: `config/keybindbundles-client.properties`

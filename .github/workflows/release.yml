@@ -1,0 +1,136 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      skip_modrinth:
+        description: 'Skip Modrinth publish step'
+        required: false
+        type: boolean
+        default: false
+      skip_curseforge:
+        description: 'Skip CurseForge publish step'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Read mod version
+        id: version
+        run: echo "mod_version=$(grep '^mod_version' gradle.properties | cut -d= -f2 | tr -d ' ')" >> "$GITHUB_OUTPUT"
+
+      - name: Validate release tag
+        run: |
+          tag="v${{ steps.version.outputs.mod_version }}"
+          tag_ref="$(git ls-remote --tags origin "refs/tags/${tag}" | cut -f1 || true)"
+          tag_target="$(git ls-remote --tags origin "refs/tags/${tag}^{}" | cut -f1 || true)"
+          if [ -n "$tag_ref" ]; then
+            if [ -z "$tag_target" ]; then
+              tag_target="$tag_ref"
+            fi
+            if [ "$tag_target" != "$GITHUB_SHA" ]; then
+              echo "::error::Remote tag ${tag} points at ${tag_target}, but this workflow is running ${GITHUB_SHA}."
+              echo "Move ${tag} to this commit or bump mod_version before publishing."
+              exit 1
+            fi
+          fi
+
+      - name: Write release notes
+        run: |
+          heading="## ${{ steps.version.outputs.mod_version }}"
+          awk -v heading="$heading" '
+            index($0, heading) == 1 { capture = 1 }
+            capture && /^## / && index($0, heading) != 1 { exit }
+            capture { print }
+          ' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            cp CHANGELOG.md release-notes.md
+          fi
+
+      - name: Build
+        run: ./gradlew build
+
+      - name: Verify release artifact
+        run: |
+          jar="build/libs/keybindbundles-fabric-${{ steps.version.outputs.mod_version }}.jar"
+          sources="build/libs/keybindbundles-fabric-${{ steps.version.outputs.mod_version }}-sources.jar"
+          test -f "$jar"
+          test -f "$sources"
+
+      - name: Validate Modrinth credentials
+        if: ${{ !inputs.skip_modrinth }}
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          MODRINTH_PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
+        run: |
+          test -n "$MODRINTH_TOKEN" || { echo "::error::Missing MODRINTH_TOKEN repository secret."; exit 1; }
+          test -n "$MODRINTH_PROJECT_ID" || { echo "::error::Missing MODRINTH_PROJECT_ID repository variable."; exit 1; }
+
+      - name: Publish to Modrinth
+        if: ${{ !inputs.skip_modrinth }}
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          MODRINTH_PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
+        run: ./gradlew --no-configuration-cache modrinth
+
+      - name: Validate CurseForge credentials
+        if: ${{ !inputs.skip_curseforge }}
+        env:
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+          CURSEFORGE_PROJECT_ID: ${{ vars.CURSEFORGE_PROJECT_ID }}
+        run: |
+          test -n "$CURSEFORGE_TOKEN" || { echo "::error::Missing CURSEFORGE_TOKEN repository secret."; exit 1; }
+          test -n "$CURSEFORGE_PROJECT_ID" || { echo "::error::Missing CURSEFORGE_PROJECT_ID repository variable."; exit 1; }
+
+      - name: Publish to CurseForge
+        if: ${{ !inputs.skip_curseforge }}
+        env:
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+          CURSEFORGE_PROJECT_ID: ${{ vars.CURSEFORGE_PROJECT_ID }}
+        run: ./gradlew --no-configuration-cache curseforge
+
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="v${{ steps.version.outputs.mod_version }}"
+          jar="build/libs/keybindbundles-fabric-${{ steps.version.outputs.mod_version }}.jar"
+          sources="build/libs/keybindbundles-fabric-${{ steps.version.outputs.mod_version }}-sources.jar"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release edit "$tag" \
+              --target "$GITHUB_SHA" \
+              --title "KeyBind Bundles Fabric ${{ steps.version.outputs.mod_version }}" \
+              --notes-file release-notes.md
+            gh release upload "$tag" --clobber "$jar" "$sources"
+          else
+            gh release create "$tag" \
+              --target "$GITHUB_SHA" \
+              --title "KeyBind Bundles Fabric ${{ steps.version.outputs.mod_version }}" \
+              --notes-file release-notes.md \
+              "$jar" "$sources"
+          fi

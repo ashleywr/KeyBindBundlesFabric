@@ -2,6 +2,8 @@ plugins {
     id 'fabric-loom' version "${loom_version}"
     id 'java-library'
     id 'maven-publish'
+    id 'com.modrinth.minotaur' version '2.8.7'
+    id 'net.darkhax.curseforgegradle' version '1.1.28'
 }
 
 version = mod_version
@@ -75,6 +77,72 @@ publishing {
     repositories {
         maven {
             url "file://${project.projectDir}/repo"
+        }
+    }
+}
+
+def releaseChangelog = {
+    def changelog = rootProject.file('CHANGELOG.md')
+    if (!changelog.exists()) return ''
+
+    def text = changelog.text.replace('\r\n', '\n')
+    def heading = "## ${mod_version}"
+    def start = text.indexOf(heading)
+    if (start < 0) return text.trim()
+
+    def next = text.indexOf('\n## ', start + 1)
+    return (next < 0 ? text.substring(start) : text.substring(start, next)).trim()
+}
+
+def envOrProperty = { envName, propertyName ->
+    providers.environmentVariable(envName)
+            .orElse(providers.gradleProperty(propertyName))
+            .getOrElse('')
+}
+
+modrinth {
+    token = envOrProperty('MODRINTH_TOKEN', 'modrinth_token')
+    projectId = envOrProperty('MODRINTH_PROJECT_ID', 'modrinth_project_id')
+    versionNumber = mod_version
+    versionName = "${mod_name} ${mod_version} (Fabric ${minecraft_version})"
+    versionType = 'release'
+    uploadFile = tasks.named('remapJar')
+    gameVersions = [minecraft_version]
+    loaders = ['fabric']
+    detectLoaders = false
+    changelog = releaseChangelog()
+    dependencies {
+        required.project 'fabric-api'
+        required.project 'cloth-config'
+        optional.project 'modmenu'
+        optional.project 'controlling'
+    }
+}
+
+def curseforgeProjectId = envOrProperty('CURSEFORGE_PROJECT_ID', 'curseforge_project_id')
+
+if (curseforgeProjectId) {
+    task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+        apiToken = envOrProperty('CURSEFORGE_TOKEN', 'curseforge_token')
+        def mainFile = upload(curseforgeProjectId, tasks.remapJar)
+        mainFile.releaseType = 'release'
+        mainFile.changelogType = 'markdown'
+        mainFile.changelog = releaseChangelog()
+        mainFile.displayName = "${mod_name} ${mod_version} (Fabric ${minecraft_version})"
+        mainFile.addGameVersion(minecraft_version)
+        mainFile.addModLoader('Fabric')
+        mainFile.addEnvironment('Client')
+        mainFile.addRequirement('fabric-api')
+        mainFile.addRequirement('cloth-config')
+        mainFile.addOptional('modmenu')
+        mainFile.addOptional('controlling')
+    }
+} else {
+    tasks.register('curseforge') {
+        group = 'publishing'
+        description = 'Publishes to CurseForge when CURSEFORGE_PROJECT_ID and CURSEFORGE_TOKEN are configured.'
+        doLast {
+            throw new GradleException('CURSEFORGE_PROJECT_ID is required to publish to CurseForge.')
         }
     }
 }
