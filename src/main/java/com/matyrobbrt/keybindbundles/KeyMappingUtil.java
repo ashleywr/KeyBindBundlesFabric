@@ -16,6 +16,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class KeyMappingUtil {
+    // Some mods, including Cobblemon's party throw binding, do their work when a key is released
+    // after observing it down during a client tick. Keep simulated taps alive long enough for that.
+    private static final int TAP_RELEASE_DELAY_TICKS = 2;
+
     @Nullable
     public static KeyMapping getByName(String name) {
         return KeyMapping.ALL.get(name);
@@ -24,6 +28,7 @@ public class KeyMappingUtil {
     private static final Minecraft MC = Minecraft.getInstance();
     public static final List<KeyMapping> KEYS_TAKEN_OVER = new ArrayList<>();
     private static final Set<String> SUPPRESSED_PHYSICAL_KEYS = ConcurrentHashMap.newKeySet();
+    private static final List<PendingRelease> PENDING_RELEASES = new ArrayList<>();
 
     /**
      * This method emulates a press of the keymapping and handles special cases
@@ -52,6 +57,16 @@ public class KeyMappingUtil {
         ((KeyMappingExtension) map).incrementClickCount();
     }
 
+    public static void tap(KeyMapping mapping) {
+        press(mapping);
+        click(mapping);
+        scheduleRelease(mapping);
+    }
+
+    private static void scheduleRelease(KeyMapping mapping) {
+        PENDING_RELEASES.add(new PendingRelease(mapping, TAP_RELEASE_DELAY_TICKS));
+    }
+
     public static void release(KeyMapping map) {
         map.setDown(false);
 
@@ -66,6 +81,20 @@ public class KeyMappingUtil {
                 if (keyMapping.isDown()) keyMapping.setDown(false);
             }
             KEYS_TAKEN_OVER.clear();
+        }
+        PENDING_RELEASES.clear();
+    }
+
+    public static void tickScheduledReleases() {
+        for (int i = PENDING_RELEASES.size() - 1; i >= 0; i--) {
+            var pending = PENDING_RELEASES.get(i);
+            pending = pending.ticked();
+            if (pending.ready()) {
+                release(pending.mapping());
+                PENDING_RELEASES.remove(i);
+            } else {
+                PENDING_RELEASES.set(i, pending);
+            }
         }
     }
 
@@ -103,17 +132,51 @@ public class KeyMappingUtil {
         return Component.translatable(mapping.getName());
     }
 
+    @Nullable
+    public static Component bundleAwareTranslatedKeyMessage(KeyMapping mapping) {
+        if (!mapping.isUnbound()) {
+            return null;
+        }
+
+        var bundleMapping = KeyBindBundleManager.findFirstBundleContaining(mapping.getName());
+        if (bundleMapping != null && !bundleMapping.isUnbound()) {
+            return bundleMapping.getTranslatedKeyMessage();
+        }
+        return null;
+    }
+
+    @Nullable
+    public static InputConstants.Key bundleAwareBoundKey(KeyMapping mapping) {
+        if (!mapping.isUnbound()) {
+            return null;
+        }
+
+        var bundleMapping = KeyBindBundleManager.findFirstBundleContaining(mapping.getName());
+        if (bundleMapping != null && !bundleMapping.isUnbound()) {
+            return InputConstants.getKey(bundleMapping.saveString());
+        }
+        return null;
+    }
+
     public static void registerBundleAwareKeybindResolver() {
         KeybindResolver.setKeyResolver(keyName -> () -> {
             var mapping = getByName(keyName);
-            if (mapping != null && mapping.isUnbound()) {
-                var bundleMapping = KeyBindBundleManager.findFirstBundleContaining(keyName);
-                if (bundleMapping != null && !bundleMapping.isUnbound()) {
-                    return bundleMapping.getTranslatedKeyMessage();
-                }
+            if (mapping != null) {
+                var bundleKeyMessage = bundleAwareTranslatedKeyMessage(mapping);
+                if (bundleKeyMessage != null) return bundleKeyMessage;
             }
 
             return KeyMapping.createNameSupplier(keyName).get();
         });
+    }
+
+    private record PendingRelease(KeyMapping mapping, int ticks) {
+        private boolean ready() {
+            return ticks <= 0;
+        }
+
+        private PendingRelease ticked() {
+            return new PendingRelease(mapping, ticks - 1);
+        }
     }
 }

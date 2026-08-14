@@ -5,6 +5,7 @@ import com.matyrobbrt.keybindbundles.util.SearchTreeManager;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
@@ -68,6 +69,7 @@ public class ModKeyBindBundles implements ClientModInitializer {
         KeyBindingHelper.registerKeyBinding(OPEN_RADIAL_MENU_MAPPING);
         KeyBindingHelper.registerKeyBinding(OPEN_SCREEN_MAPPING);
         HudRenderCallback.EVENT.register((graphics, deltaTracker) -> KeybindSelectionOverlay.INSTANCE.render(graphics, deltaTracker));
+        ClientTickEvents.END_CLIENT_TICK.register(client -> KeyMappingUtil.tickScheduledReleases());
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> SearchTreeManager.onPlayerJoin());
         ClientLifecycleEvents.CLIENT_STARTED.register(client -> KeyBindBundleManager.load());
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> KeyBindBundleManager.write());

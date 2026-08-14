@@ -9,12 +9,14 @@
 - Added debounced item ID autocomplete for bundle entry icons, including keyboard navigation and a clickable icon picker.
 - Added a client config option to keep bundle radial menus open as a screen until an entry is selected.
 - Added bundle-aware keybind text fallback so unbound keybind prompts can show the first assigned bundle shortcut containing that key.
+- Added Cobblemon compatibility for prompts that read Cobblemon's raw bound-key helper instead of Minecraft's normal keybind text.
 - Added repository-wide UTF-8 and line-ending defaults through `.editorconfig` and `.gitattributes`.
 
 ### Changed
 
 - Bundle edit screens now return to the Controls keybind screen when closed.
 - Bundle icon search now uses a deterministic item registry ID search tree.
+- Bundle release-triggered selections now hold the simulated key press across client ticks so release-driven keybinds can observe the press.
 - Suppressed invalid key polling during bundle key selection to avoid log spam from unbound keys.
 - Quieted invalid key polling compatibility diagnostics to debug logging.
 
@@ -25,6 +27,8 @@
 - Fixed bundle deletion returning all the way to the main menu.
 - Fixed deleted bundles remaining visible in the Controls keybind screen until reopening it.
 - Fixed item icon autocomplete clicks sometimes selecting the previous or first suggestion instead of the hovered row.
+- Fixed radial mouse clipping crashing when the cursor was kept inside the menu.
+- Fixed Cobblemon's "Press Not Bound to battle" style prompts for bundled throw/battle keybinds.
 
 ## 1.4.0 - Fabric 1.21.1
 

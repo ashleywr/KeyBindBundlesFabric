@@ -64,7 +64,7 @@ public class KeybindSelectionOverlay extends RadialMenuRenderer<KeyBindBundle.Ke
             GLFW.glfwGetCursorPos(mainWindow.getWindow(), xPos, yPos);
 
             double scaledX = xPos[0] - (windowWidth / 2.0f);
-            double scaledY = yPos[1] - (windowHeight / 2.0f);
+            double scaledY = yPos[0] - (windowHeight / 2.0f);
 
             double distance = Math.sqrt(scaledX * scaledX + scaledY * scaledY);
             double radius = RadialMenuRenderer.OUTER * ((double) windowWidth / mainWindow.getGuiScaledWidth()) * 1.1;
@@ -143,17 +143,13 @@ public class KeybindSelectionOverlay extends RadialMenuRenderer<KeyBindBundle.Ke
         this.displayedKeybind = null;
         this.displayedMapping = null;
         clearState();
+        KeyMappingUtil.restoreAll();
 
         if (kb != null && KBClientConfig.TRIGGER_KEYMAPPING_ON_RELEASE.getAsBoolean() && underMouse >= 0) {
             var key = KeyMappingUtil.getByName(kb.getEntries().get(underMouse).key());
             if (key != null) {
-                KeyMappingUtil.press(key);
-                KeyMappingUtil.click(key);
-                // Delay release until next tick
-                Minecraft.getInstance().execute(() -> KeyMappingUtil.release(key));
+                KeyMappingUtil.tap(key);
             }
         }
-
-        KeyMappingUtil.restoreAll();
     }
 }

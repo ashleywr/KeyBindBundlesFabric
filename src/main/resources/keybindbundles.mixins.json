@@ -12,6 +12,7 @@
     "MinecraftMixin",
     "MouseHandlerMixin",
 
+    "compat.CobblemonCurrentKeyAccessorMixin",
     "compat.NewKeyEntryMixin",
 
     "access.ScreenAccess",

@@ -6,6 +6,7 @@ import com.matyrobbrt.keybindbundles.KeyMappingUtil;
 import com.matyrobbrt.keybindbundles.ii.KeyMappingExtension;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -64,6 +65,14 @@ public class KeyMappingMixin implements KeyMappingExtension {
         // if it happens to be saved while it's being held down and captured by us
         if (key == ModKeyBindBundles.BUNDLE_TRIGGER_KEY && previousKey != null) {
             cir.setReturnValue(previousKey.getName());
+        }
+    }
+
+    @Inject(at = @At("HEAD"), method = "getTranslatedKeyMessage", cancellable = true)
+    private void getBundleAwareTranslatedKeyMessage(CallbackInfoReturnable<Component> cir) {
+        var bundleKeyMessage = KeyMappingUtil.bundleAwareTranslatedKeyMessage((KeyMapping) (Object) this);
+        if (bundleKeyMessage != null) {
+            cir.setReturnValue(bundleKeyMessage);
         }
     }
 

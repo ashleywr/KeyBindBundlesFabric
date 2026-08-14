@@ -12,6 +12,21 @@ This fork targets Fabric on Minecraft 1.21.1. It is maintained separately from
 the original NeoForge project and is not endorsed by or affiliated with
 Matyrobbrt unless stated otherwise by the original project.
 
+## Usage
+
+Open Minecraft's Controls screen and use the KeyBind Bundles controls there to
+create, edit, delete, and bind bundles. Bundle shortcuts are assigned like any
+other Minecraft keybind.
+
+Each bundle entry points at one existing keybind. Entries can have a custom
+label and an item icon. The icon field accepts item IDs such as
+`minecraft:compass`, and the edit screen includes debounced autocomplete with
+keyboard navigation.
+
+By default, holding a bundle key opens the radial overlay and releasing the key
+can trigger the highlighted entry when that config option is enabled. Sticky
+selection mode keeps the radial menu open as a screen until an entry is clicked.
+
 ## Requirements
 
 - Minecraft 1.21.1
@@ -25,6 +40,36 @@ screen from the Mods menu so client config values can be changed in game.
 
 Controlling is optional. When installed, the bundle edit and delete controls are
 shown in Controlling's keybind list as well as vanilla's controls screen.
+
+## Configuration
+
+Client config is stored in `config/keybindbundles-client.properties` and can be
+edited in game through Mod Menu when Mod Menu is installed.
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `clipMouseToMenu` | `false` | Keeps the mouse cursor inside the radial menu while a bundle is open. |
+| `triggerKeymappingOnRelease` | `false` | Triggers the highlighted entry when the bundle key is released. |
+| `ignoreInvalidKeyChecks` | `false` | Returns `false` for invalid key polling instead of letting noisy compatibility logs appear. |
+| `stickyBundleSelection` | `false` | Opens bundles as a screen that stays open until an entry is selected. |
+
+## Compatibility
+
+KeyBind Bundles works by letting the bundle own the physical shortcut while the
+entries inside the bundle can remain unbound in Minecraft's normal Controls
+screen. That avoids ordinary keybind conflicts, but some mods render prompts by
+reading the raw bound key instead of Minecraft's translated keybind text.
+
+The Fabric port includes compatibility for:
+
+- Vanilla Controls screen
+- Controlling's keybind screen
+- Searchables autofocus behavior when returning from bundle edit screens
+- Cobblemon prompts that read `CurrentKeyAccessorKt.boundKey(...)`
+
+If another mod still displays "Not Bound" for a key that is inside a bundle, it
+is probably using a similar raw-key path and may need a small compatibility
+hook.
 
 ## Build
 
