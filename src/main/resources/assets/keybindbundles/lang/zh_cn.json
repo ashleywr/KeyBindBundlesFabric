@@ -29,6 +29,8 @@
   "tooltip.keybindbundles.bundle.move_clockwise": "点击鼠标右键以顺时针移动栏位",
   "tooltip.keybindbundles.bundle.move_counterclockwise": "按住shift点击鼠标右键以逆时针移动栏位",
 
+  "title.keybindbundles.config": "快捷轮盘配置",
+  "category.keybindbundles.configuration": "通用",
   "keybindbundles.configuration.ignoreInvalidKeyChecks": "忽略无效按键检查 #isKeyDown",
   "keybindbundles.configuration.clipMouseToMenu": "将鼠标限制在轮盘菜单中",
   "keybindbundles.configuration.triggerKeymappingOnRelease": "关闭轮盘时触发鼠标指向的栏位操作"

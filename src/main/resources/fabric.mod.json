@@ -17,6 +17,9 @@
   "entrypoints": {
     "client": [
       "com.matyrobbrt.keybindbundles.ModKeyBindBundles"
+    ],
+    "modmenu": [
+      "com.matyrobbrt.keybindbundles.compat.ModMenuIntegration"
     ]
   },
   "accessWidener": "keybindbundles.accesswidener",
@@ -26,10 +29,12 @@
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric-api": "*",
+    "cloth-config2": "*",
     "minecraft": "${minecraft_version}",
     "java": ">=21"
   },
   "suggests": {
-    "controlling": "*"
+    "controlling": "*",
+    "modmenu": "*"
   }
 }

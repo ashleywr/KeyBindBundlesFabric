@@ -7,6 +7,7 @@ import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.KeybindResolver;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -100,5 +101,19 @@ public class KeyMappingUtil {
             return radial.getDisplayName();
         }
         return Component.translatable(mapping.getName());
+    }
+
+    public static void registerBundleAwareKeybindResolver() {
+        KeybindResolver.setKeyResolver(keyName -> () -> {
+            var mapping = getByName(keyName);
+            if (mapping != null && mapping.isUnbound()) {
+                var bundleMapping = KeyBindBundleManager.findFirstBundleContaining(keyName);
+                if (bundleMapping != null && !bundleMapping.isUnbound()) {
+                    return bundleMapping.getTranslatedKeyMessage();
+                }
+            }
+
+            return KeyMapping.createNameSupplier(keyName).get();
+        });
     }
 }

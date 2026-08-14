@@ -27,5 +27,11 @@
   "tooltip.keybindbundles.bundle.edit_entry": "Girdiyi düzenlemek için Sol Tıkla",
   "tooltip.keybindbundles.bundle.delete_entry": "Girdiyi silmek için Shift Sol Tıkla",
   "tooltip.keybindbundles.bundle.move_clockwise": "Girdiyi saat yönünde hareket ettirmek için Sağ Tıkla",
-  "tooltip.keybindbundles.bundle.move_counterclockwise": "Girdiyi saat yönünün tersine hareket ettirmek için Shift Sağ Tıkla"
+  "tooltip.keybindbundles.bundle.move_counterclockwise": "Girdiyi saat yönünün tersine hareket ettirmek için Shift Sağ Tıkla",
+
+  "title.keybindbundles.config": "KeyBind Bundles Yapılandırması",
+  "category.keybindbundles.configuration": "Genel",
+  "keybindbundles.configuration.ignoreInvalidKeyChecks": "#isKeyDown içindeki geçersiz tuş kontrollerini yok say",
+  "keybindbundles.configuration.clipMouseToMenu": "Fareyi dairesel menü sınırları içinde tut",
+  "keybindbundles.configuration.triggerKeymappingOnRelease": "Paket bırakıldığında işaretlenen tuş atamasını tetikle"
 }

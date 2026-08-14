@@ -72,11 +72,17 @@ public class KeyBundleModificationScreen extends Screen {
     };
 
     private final KeyBindBundle bundle;
+    private final Screen parent;
     private List<KeyBindBundle.KeyEntry> entries = List.of();
 
     public KeyBundleModificationScreen(KeyBindBundle bundle) {
+        this(bundle, null);
+    }
+
+    public KeyBundleModificationScreen(KeyBindBundle bundle, Screen parent) {
         super(Component.translatable("title.keybindbundles.editing_keybundle", Component.literal(bundle.name).withStyle(ChatFormatting.GOLD)));
         this.bundle = bundle;
+        this.parent = parent;
     }
 
     @Override
@@ -101,8 +107,8 @@ public class KeyBundleModificationScreen extends Screen {
         Minecraft.getInstance().setScreen(new ConfirmScreen(click -> {
             if (click) {
                 currentlySelecting = null;
-                Minecraft.getInstance().setScreen(null);
                 KeyBindBundleManager.delete(bundle);
+                Minecraft.getInstance().setScreen(parent);
             } else {
                 Minecraft.getInstance().setScreen(this);
             }
@@ -113,7 +119,7 @@ public class KeyBundleModificationScreen extends Screen {
     public void onClose() {
         KeyBindBundleManager.write();
         currentlySelecting = null;
-        super.onClose();
+        Minecraft.getInstance().setScreen(parent);
     }
 
     @Override

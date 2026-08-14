@@ -1,12 +1,16 @@
 package com.matyrobbrt.keybindbundles.mixin;
 
+import com.matyrobbrt.keybindbundles.KeyBindBundleManager;
+import com.matyrobbrt.keybindbundles.KeyMappingUtil;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.screens.options.controls.KeyBindsList;
 import net.minecraft.network.chat.Component;
+import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -26,10 +30,17 @@ public class KeyEntryMixin extends BaseKeyEntryMixin {
 
     @Shadow
     @Final
+    @Mutable
     private Component name;
 
     @Inject(at = @At("TAIL"), method = "<init>")
     private void handleCustom(KeyBindsList owner, KeyMapping key, Component name, CallbackInfo ci) {
+        if (key instanceof KeyBindBundleManager.RadialKeyMapping) {
+            var customName = KeyMappingUtil.displayName(key);
+            this.name = customName;
+            name = customName;
+        }
+
         kbb$handleCustom(key, name);
     }
 
@@ -49,7 +60,7 @@ public class KeyEntryMixin extends BaseKeyEntryMixin {
     ) {
         if (selectButton != null) {
             guiGraphics.drawString(Minecraft.getInstance().font, this.name, left, top + height / 2 - 9 / 2, -1);
-            selectButton.setPosition(changeButton.getX() + changeButton.getWidth() - selectButton.getWidth(), top - 2);
+            kbb$positionSelectButton(left, width, top);
             selectButton.render(guiGraphics, mouseX, mouseY, partialTick);
             ci.cancel();
         } else if (editButton != null) {
@@ -58,12 +69,29 @@ public class KeyEntryMixin extends BaseKeyEntryMixin {
         }
     }
 
-    @Inject(at = @At("RETURN"), method = {"children", "narratables"}, cancellable = true)
-    private void addCustomChildren(CallbackInfoReturnable<List<GuiEventListener>> cir) {
-        var newList = new ArrayList<>(cir.getReturnValue());
+    @Inject(at = @At("RETURN"), method = "children", cancellable = true)
+    private void addCustomChildren(CallbackInfoReturnable<List<? extends GuiEventListener>> cir) {
         if (selectButton != null) {
-            newList.add(selectButton);
-        } else if (editButton != null) {
+            cir.setReturnValue(List.of(selectButton));
+            return;
+        }
+
+        List<GuiEventListener> newList = new ArrayList<>(cir.getReturnValue());
+        if (editButton != null) {
+            newList.add(editButton);
+        }
+        cir.setReturnValue(newList);
+    }
+
+    @Inject(at = @At("RETURN"), method = "narratables", cancellable = true)
+    private void addCustomNarratables(CallbackInfoReturnable<List<? extends NarratableEntry>> cir) {
+        if (selectButton != null) {
+            cir.setReturnValue(List.of(selectButton));
+            return;
+        }
+
+        List<NarratableEntry> newList = new ArrayList<>(cir.getReturnValue());
+        if (editButton != null) {
             newList.add(editButton);
         }
         cir.setReturnValue(newList);

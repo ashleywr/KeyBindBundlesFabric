@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Added a Cloth Config screen exposed through Mod Menu when installed.
+- Added in-game editing for client config values that were previously only editable in the properties file.
+- Added debounced item ID autocomplete for bundle entry icons, including keyboard navigation and a clickable icon picker.
+- Added bundle-aware keybind text fallback so unbound keybind prompts can show the first assigned bundle shortcut containing that key.
+- Added repository-wide UTF-8 and line-ending defaults through `.editorconfig` and `.gitattributes`.
+
+### Changed
+
+- Bundle edit screens now return to the Controls keybind screen when closed.
+- Bundle icon search now uses a deterministic item registry ID search tree.
+- Suppressed invalid key polling during bundle key selection to avoid log spam from unbound keys.
+- Quieted invalid key polling compatibility diagnostics to debug logging.
+
+### Fixed
+
+- Fixed selecting keys for a bundle in the vanilla and Controlling keybind lists.
+- Fixed bundle keybind rows showing raw translation keys instead of the bundle name.
+- Fixed bundle deletion returning all the way to the main menu.
+
 ## 1.4.0 - Fabric 1.21.1
 
 Initial Fabric release for Minecraft 1.21.1.
@@ -9,6 +32,7 @@ Initial Fabric release for Minecraft 1.21.1.
 - Fabric Loader, Fabric API, and Loom build support.
 - Fabric mod metadata and access widener configuration.
 - Client-side Fabric lifecycle, keybinding, networking, and HUD event wiring.
+- Cloth Config screen support exposed through Mod Menu when installed.
 - In-game bundle deletion button with confirmation.
 - Save-on-change behavior for bundle edits, entry selection, deletion, reordering, and client shutdown.
 

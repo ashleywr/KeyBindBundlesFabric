@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.Nullable;
 
 public class KeyBindBundleManager {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -169,6 +170,20 @@ public class KeyBindBundleManager {
 
     public static List<RadialKeyMapping> getKeys() {
         return keyMappings;
+    }
+
+    @Nullable
+    public static RadialKeyMapping findFirstBundleContaining(String keyName) {
+        if (keyMappings == null) {
+            return null;
+        }
+
+        for (RadialKeyMapping mapping : keyMappings) {
+            if (mapping.bind.getEntries().stream().anyMatch(entry -> entry.key().equals(keyName))) {
+                return mapping;
+            }
+        }
+        return null;
     }
 
     public static class RadialKeyMapping extends PriorityKeyMapping {

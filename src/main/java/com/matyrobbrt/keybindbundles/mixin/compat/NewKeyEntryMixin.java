@@ -59,7 +59,7 @@ public class NewKeyEntryMixin extends BaseKeyEntryMixin implements OverrideListe
     ) {
         if (selectButton != null) {
             guiGraphics.drawString(Minecraft.getInstance().font, keyDesc, left, top + height / 2 - 9 / 2, -1);
-            selectButton.setPosition(btnChangeKeyBinding.getX() + btnChangeKeyBinding.getWidth() - selectButton.getWidth(), top - 2);
+            kbb$positionSelectButton(left, width, top);
             selectButton.render(guiGraphics, mouseX, mouseY, partialTick);
             ci.cancel();
         } else if (editButton != null) {

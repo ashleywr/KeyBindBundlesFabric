@@ -17,7 +17,11 @@ Matyrobbrt unless stated otherwise by the original project.
 - Minecraft 1.21.1
 - Fabric Loader
 - Fabric API
+- Cloth Config API
 - Java 21
+
+Mod Menu is optional. When installed, KeyBind Bundles exposes its Cloth Config
+screen from the Mods menu so client config values can be changed in game.
 
 Controlling is optional. When installed, the bundle edit and delete controls are
 shown in Controlling's keybind list as well as vanilla's controls screen.

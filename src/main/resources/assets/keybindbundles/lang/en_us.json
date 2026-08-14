@@ -30,6 +30,8 @@
   "tooltip.keybindbundles.bundle.move_clockwise": "Right click to move entry clockwise",
   "tooltip.keybindbundles.bundle.move_counterclockwise": "Shift Right Click to move entry counterclockwise",
 
+  "title.keybindbundles.config": "KeyBind Bundles Config",
+  "category.keybindbundles.configuration": "General",
   "keybindbundles.configuration.ignoreInvalidKeyChecks": "Ignore invalid key checks in #isKeyDown",
   "keybindbundles.configuration.clipMouseToMenu": "Clip mouse within radial menu bounds",
   "keybindbundles.configuration.triggerKeymappingOnRelease": "Trigger hovered keymapping on bundle release"

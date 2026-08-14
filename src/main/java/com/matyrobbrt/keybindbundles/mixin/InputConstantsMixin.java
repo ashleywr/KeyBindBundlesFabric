@@ -3,6 +3,7 @@ package com.matyrobbrt.keybindbundles.mixin;
 import com.matyrobbrt.keybindbundles.KBClientConfig;
 import com.matyrobbrt.keybindbundles.KeyMappingUtil;
 import com.matyrobbrt.keybindbundles.ModKeyBindBundles;
+import com.matyrobbrt.keybindbundles.render.KeyBundleModificationScreen;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.logging.LogUtils;
 import org.spongepowered.asm.mixin.Mixin;
@@ -26,6 +27,11 @@ public class InputConstantsMixin {
             return;
         }
 
+        if (key <= 0 && KeyBundleModificationScreen.currentlySelecting != null) {
+            cir.setReturnValue(false);
+            return;
+        }
+
         if (key <= 0 && KBClientConfig.IGNORE_INVALID_KEY_CHECKS.getAsBoolean()) {
             var caller = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
                     .walk(s -> s.map(StackWalker.StackFrame::getDeclaringClass)
@@ -33,7 +39,7 @@ public class InputConstantsMixin {
                             .findFirst())
                             .orElse(null);
             if (caller != null && IGNORED_INVALID_CALLSITES.add(caller)) {
-                LogUtils.getLogger().error("Class {} attempted to call InputConstants#isKeyDown with an invalid key code {}. This error will be suppressed for this class going forward", caller, key, new Throwable("Invalid key code " + key));
+                LogUtils.getLogger().debug("Class {} attempted to call InputConstants#isKeyDown with an invalid key code {}. Returning false.", caller, key);
             }
             cir.setReturnValue(false);
             return;

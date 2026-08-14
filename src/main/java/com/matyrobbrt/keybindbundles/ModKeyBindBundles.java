@@ -63,6 +63,7 @@ public class ModKeyBindBundles implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         KBClientConfig.load();
+        KeyMappingUtil.registerBundleAwareKeybindResolver();
 
         KeyBindingHelper.registerKeyBinding(OPEN_RADIAL_MENU_MAPPING);
         KeyBindingHelper.registerKeyBinding(OPEN_SCREEN_MAPPING);

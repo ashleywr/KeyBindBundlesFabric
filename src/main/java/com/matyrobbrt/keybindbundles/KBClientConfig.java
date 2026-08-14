@@ -32,10 +32,10 @@ public class KBClientConfig {
         CLIP_MOUSE_TO_MENU.read(properties);
         TRIGGER_KEYMAPPING_ON_RELEASE.read(properties);
         IGNORE_INVALID_KEY_CHECKS.read(properties);
-        write();
+        save();
     }
 
-    private static void write() {
+    public static void save() {
         var properties = new Properties();
         CLIP_MOUSE_TO_MENU.write(properties);
         TRIGGER_KEYMAPPING_ON_RELEASE.write(properties);
@@ -64,6 +64,14 @@ public class KBClientConfig {
 
         public boolean getAsBoolean() {
             return value;
+        }
+
+        public boolean getDefaultValue() {
+            return defaultValue;
+        }
+
+        public void set(boolean value) {
+            this.value = value;
         }
 
         private void read(Properties properties) {

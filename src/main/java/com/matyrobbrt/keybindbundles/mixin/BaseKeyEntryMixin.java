@@ -20,10 +20,16 @@ public class BaseKeyEntryMixin {
     @Unique
     protected Button selectButton;
 
+    @Unique
+    protected void kbb$positionSelectButton(int left, int width, int top) {
+        selectButton.setPosition(left + width - selectButton.getWidth(), top - 2);
+    }
+
     protected void kbb$handleCustom(KeyMapping key, Component name) {
         if (key instanceof KeyBindBundleManager.RadialKeyMapping radial) {
             editButton = Button.builder(Component.translatable("button.keybindbundles.edit"), but -> {
-                Minecraft.getInstance().setScreen(new KeyBundleModificationScreen(radial.bind));
+                Minecraft minecraft = Minecraft.getInstance();
+                minecraft.setScreen(new KeyBundleModificationScreen(radial.bind, minecraft.screen));
             }).bounds(0, 0, 50, 20).build();
         }
 
