@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.ArrayUtils;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -125,6 +126,34 @@ public abstract class RadialMenuRenderer<T> {
         double mouseX = mouse.xpos() * (double)Minecraft.getInstance().getWindow().getGuiScaledWidth() / (double)Minecraft.getInstance().getWindow().getScreenWidth();
         double mouseY = mouse.ypos() * (double)Minecraft.getInstance().getWindow().getGuiScaledHeight() / (double)Minecraft.getInstance().getWindow().getScreenHeight();
         return new MousePos(mouseX, mouseY);
+    }
+
+    public static void clipMouseToMenu() {
+        var mainWindow = Minecraft.getInstance().getWindow();
+        int windowWidth = mainWindow.getScreenWidth();
+        int windowHeight = mainWindow.getScreenHeight();
+        int guiWidth = mainWindow.getGuiScaledWidth();
+        int guiHeight = mainWindow.getGuiScaledHeight();
+
+        double[] xPos = new double[1];
+        double[] yPos = new double[1];
+        GLFW.glfwGetCursorPos(mainWindow.getWindow(), xPos, yPos);
+
+        double mouseX = xPos[0] * guiWidth / windowWidth;
+        double mouseY = yPos[0] * guiHeight / windowHeight;
+        double centerX = guiWidth / 2.0;
+        double centerY = guiHeight / 2.0;
+        double xDiff = mouseX - centerX;
+        double yDiff = mouseY - centerY;
+
+        double radius = OUTER * 1.1;
+        double distance = Mth.length(xDiff, yDiff);
+        if (distance > radius) {
+            double fixedX = centerX + xDiff * radius / distance;
+            double fixedY = centerY + yDiff * radius / distance;
+
+            GLFW.glfwSetCursorPos(mainWindow.getWindow(), fixedX * windowWidth / guiWidth, fixedY * windowHeight / guiHeight);
+        }
     }
 
     protected int getElementUnderMouse(boolean upperboundRadius) {

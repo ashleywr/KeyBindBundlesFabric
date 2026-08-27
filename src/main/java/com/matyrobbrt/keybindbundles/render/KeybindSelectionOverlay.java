@@ -54,27 +54,7 @@ public class KeybindSelectionOverlay extends RadialMenuRenderer<KeyBindBundle.Ke
         super.render(guiGraphics, true);
 
         if (KBClientConfig.CLIP_MOUSE_TO_MENU.getAsBoolean()) {
-            var mainWindow = Minecraft.getInstance().getWindow();
-
-            int windowWidth = mainWindow.getScreenWidth();
-            int windowHeight = mainWindow.getScreenHeight();
-
-            double[] xPos = new double[1];
-            double[] yPos = new double[1];
-            GLFW.glfwGetCursorPos(mainWindow.getWindow(), xPos, yPos);
-
-            double scaledX = xPos[0] - (windowWidth / 2.0f);
-            double scaledY = yPos[0] - (windowHeight / 2.0f);
-
-            double distance = Math.sqrt(scaledX * scaledX + scaledY * scaledY);
-            double radius = RadialMenuRenderer.OUTER * ((double) windowWidth / mainWindow.getGuiScaledWidth()) * 1.1;
-
-            if (distance > radius) {
-                double fixedX = scaledX * radius / distance;
-                double fixedY = scaledY * radius / distance;
-
-                GLFW.glfwSetCursorPos(mainWindow.getWindow(), (int) (windowWidth / 2 + fixedX), (int) (windowHeight / 2 + fixedY));
-            }
+            RadialMenuRenderer.clipMouseToMenu();
         }
     }
 
