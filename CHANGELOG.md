@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.1-fabric.2 - Fabric 1.21.1
+
+- Improved radial-menu rendering and keybind selection feedback.
+
 ## 1.4.1-fabric.1 - Fabric 1.21.1
 
 Unofficial Fabric-port release based on KeyBind Bundles 1.4.1. This release is
